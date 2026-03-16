@@ -17,6 +17,13 @@ const STRIPE_PRICE_ID = process.env.STRIPE_PRICE_ID || '';
 const STRIPE_WEBHOOK_SECRET = process.env.STRIPE_WEBHOOK_SECRET || '';
 const stripe = STRIPE_SECRET_KEY ? require('stripe')(STRIPE_SECRET_KEY) : null;
 
+const SUPABASE_URL = process.env.SUPABASE_URL || '';
+const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || '';
+const supabase = SUPABASE_URL && SUPABASE_SERVICE_ROLE_KEY
+  ? require('@supabase/supabase-js').createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY)
+  : null;
+const USE_SUPABASE = Boolean(supabase);
+
 function ensureDb() {
   if (!fs.existsSync(DATA_DIR)) {
     fs.mkdirSync(DATA_DIR, { recursive: true });
@@ -95,39 +102,225 @@ function parseCookies(req) {
   return out;
 }
 
-function requireAuth(req, res, next) {
-  const cookies = parseCookies(req);
-  const token = cookies[SESSION_COOKIE];
-  if (!token) {
-    return res.status(401).json({ error: 'Non authentifie.' });
+function mapRestaurantRow(row) {
+  if (!row) return null;
+  return {
+    id: row.id,
+    name: row.name,
+    vat: row.vat,
+    email: row.email,
+    slug: row.slug,
+    token: row.token,
+    reviewUrl: row.review_url || '',
+    passwordSalt: row.password_salt,
+    passwordHash: row.password_hash,
+    createdAt: row.created_at,
+    subscriptionStatus: row.subscription_status || 'inactive',
+    themeId: row.theme_id || 'neon',
+    validationCode: row.validation_code || '',
+    stripeCustomerId: row.stripe_customer_id || '',
+    stripeSubscriptionId: row.stripe_subscription_id || ''
+  };
+}
+
+function mapRestaurantToRow(restaurant) {
+  return {
+    id: restaurant.id,
+    name: restaurant.name,
+    vat: restaurant.vat,
+    email: restaurant.email,
+    slug: restaurant.slug,
+    token: restaurant.token,
+    review_url: restaurant.reviewUrl || '',
+    password_salt: restaurant.passwordSalt,
+    password_hash: restaurant.passwordHash,
+    created_at: restaurant.createdAt,
+    subscription_status: restaurant.subscriptionStatus || 'inactive',
+    theme_id: restaurant.themeId || 'neon',
+    validation_code: restaurant.validationCode || '',
+    stripe_customer_id: restaurant.stripeCustomerId || '',
+    stripe_subscription_id: restaurant.stripeSubscriptionId || ''
+  };
+}
+
+async function dbGetRestaurantByToken(token) {
+  if (USE_SUPABASE) {
+    const { data } = await supabase.from('restaurants').select('*').eq('token', token).maybeSingle();
+    return mapRestaurantRow(data);
   }
   const db = loadDb();
-  const restaurant = db.restaurants.find((r) => r.token === token);
-  if (!restaurant) {
-    return res.status(401).json({ error: 'Session invalide.' });
-  }
-  req.restaurant = restaurant;
-  next();
+  return db.restaurants.find((r) => r.token === token) || null;
 }
 
-function requireActiveSubscription(req, res, next) {
-  const status = req.restaurant && req.restaurant.subscriptionStatus;
-  if (status !== 'active') {
-    return res.status(402).json({ error: 'Abonnement inactif.' });
+async function dbGetRestaurantById(id) {
+  if (USE_SUPABASE) {
+    const { data } = await supabase.from('restaurants').select('*').eq('id', id).maybeSingle();
+    return mapRestaurantRow(data);
   }
-  next();
+  const db = loadDb();
+  return db.restaurants.find((r) => r.id === id) || null;
 }
 
-function requireOwner(req, res, next) {
-  const cookies = parseCookies(req);
-  const token = cookies[OWNER_COOKIE];
-  if (!token || token !== 'ok') {
-    return res.status(401).json({ error: 'Acces refuse.' });
+async function dbGetRestaurantByEmail(email) {
+  if (USE_SUPABASE) {
+    const { data } = await supabase.from('restaurants').select('*').eq('email', email).maybeSingle();
+    return mapRestaurantRow(data);
   }
-  next();
+  const db = loadDb();
+  return db.restaurants.find((r) => r.email === email) || null;
 }
 
-function updateSubscriptionByCustomer(customerId, status) {
+async function dbGetRestaurantBySlug(slug) {
+  if (USE_SUPABASE) {
+    const { data } = await supabase.from('restaurants').select('*').eq('slug', slug).maybeSingle();
+    return mapRestaurantRow(data);
+  }
+  const db = loadDb();
+  return db.restaurants.find((r) => r.slug === slug) || null;
+}
+
+async function dbInsertRestaurant(restaurant) {
+  if (USE_SUPABASE) {
+    await supabase.from('restaurants').insert(mapRestaurantToRow(restaurant));
+    return;
+  }
+  const db = loadDb();
+  db.restaurants.push(restaurant);
+  saveDb(db);
+}
+
+async function dbUpdateRestaurant(id, patch) {
+  if (USE_SUPABASE) {
+    await supabase.from('restaurants').update(patch).eq('id', id);
+    return;
+  }
+  const db = loadDb();
+  const idx = db.restaurants.findIndex((r) => r.id === id);
+  if (idx >= 0) {
+    db.restaurants[idx] = { ...db.restaurants[idx], ...patch };
+    saveDb(db);
+  }
+}
+
+async function dbGetRestaurants() {
+  if (USE_SUPABASE) {
+    const { data } = await supabase.from('restaurants').select('*');
+    return (data || []).map(mapRestaurantRow);
+  }
+  const db = loadDb();
+  return db.restaurants;
+}
+
+async function dbGetPrizesByRestaurant(restaurantId) {
+  if (USE_SUPABASE) {
+    const { data } = await supabase.from('prizes').select('*').eq('restaurant_id', restaurantId);
+    return (data || []).map((row) => ({
+      id: row.id,
+      restaurantId: row.restaurant_id,
+      label: row.label,
+      probability: row.probability,
+      isRetry: row.is_retry
+    }));
+  }
+  const db = loadDb();
+  return db.prizes.filter((p) => p.restaurantId === restaurantId);
+}
+
+async function dbReplacePrizes(restaurantId, prizes) {
+  if (USE_SUPABASE) {
+    await supabase.from('prizes').delete().eq('restaurant_id', restaurantId);
+    if (prizes.length) {
+      const rows = prizes.map((p) => ({
+        id: p.id,
+        restaurant_id: restaurantId,
+        label: p.label,
+        probability: p.probability,
+        is_retry: Boolean(p.isRetry)
+      }));
+      await supabase.from('prizes').insert(rows);
+    }
+    return;
+  }
+  const db = loadDb();
+  db.prizes = db.prizes.filter((p) => p.restaurantId !== restaurantId);
+  db.prizes.push(...prizes);
+  saveDb(db);
+}
+
+async function dbGetSpinsByRestaurant(restaurantId, limit = 50) {
+  if (USE_SUPABASE) {
+    const { data } = await supabase
+      .from('spins')
+      .select('*')
+      .eq('restaurant_id', restaurantId)
+      .order('created_at', { ascending: false })
+      .limit(limit);
+    return (data || []).map((row) => ({
+      id: row.id,
+      restaurantId: row.restaurant_id,
+      prizeId: row.prize_id,
+      prizeLabel: row.prize_label,
+      createdAt: row.created_at,
+      reviewConfirmed: row.review_confirmed
+    }));
+  }
+  const db = loadDb();
+  return db.spins
+    .filter((s) => s.restaurantId === restaurantId)
+    .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+    .slice(0, limit);
+}
+
+async function dbInsertSpin(spin) {
+  if (USE_SUPABASE) {
+    await supabase.from('spins').insert({
+      id: spin.id,
+      restaurant_id: spin.restaurantId,
+      prize_id: spin.prizeId,
+      prize_label: spin.prizeLabel,
+      created_at: spin.createdAt,
+      review_confirmed: spin.reviewConfirmed
+    });
+    return;
+  }
+  const db = loadDb();
+  db.spins.push(spin);
+  saveDb(db);
+}
+
+async function dbDeleteRestaurant(restaurantId) {
+  if (USE_SUPABASE) {
+    await supabase.from('prizes').delete().eq('restaurant_id', restaurantId);
+    await supabase.from('spins').delete().eq('restaurant_id', restaurantId);
+    await supabase.from('restaurants').delete().eq('id', restaurantId);
+    return;
+  }
+  const db = loadDb();
+  db.restaurants = db.restaurants.filter((r) => r.id !== restaurantId);
+  db.prizes = db.prizes.filter((p) => p.restaurantId !== restaurantId);
+  db.spins = db.spins.filter((s) => s.restaurantId !== restaurantId);
+  saveDb(db);
+}
+
+async function dbCountSpinsSince(restaurantId, sinceIso) {
+  if (USE_SUPABASE) {
+    const { count } = await supabase
+      .from('spins')
+      .select('id', { count: 'exact', head: true })
+      .eq('restaurant_id', restaurantId)
+      .gte('created_at', sinceIso);
+    return count || 0;
+  }
+  const db = loadDb();
+  const since = new Date(sinceIso).getTime();
+  return db.spins.filter((s) => s.restaurantId === restaurantId && new Date(s.createdAt).getTime() >= since).length;
+}
+
+async function updateSubscriptionByCustomer(customerId, status) {
+  if (USE_SUPABASE) {
+    await supabase.from('restaurants').update({ subscription_status: status }).eq('stripe_customer_id', customerId);
+    return true;
+  }
   const db = loadDb();
   const restaurant = db.restaurants.find((r) => r.stripeCustomerId === customerId);
   if (!restaurant) return false;
@@ -136,7 +329,11 @@ function updateSubscriptionByCustomer(customerId, status) {
   return true;
 }
 
-function updateSubscriptionById(subscriptionId, status) {
+async function updateSubscriptionById(subscriptionId, status) {
+  if (USE_SUPABASE) {
+    await supabase.from('restaurants').update({ subscription_status: status }).eq('stripe_subscription_id', subscriptionId);
+    return true;
+  }
   const db = loadDb();
   const restaurant = db.restaurants.find((r) => r.stripeSubscriptionId === subscriptionId);
   if (!restaurant) return false;
@@ -145,12 +342,7 @@ function updateSubscriptionById(subscriptionId, status) {
   return true;
 }
 
-function countSpins(spins, ms) {
-  const since = Date.now() - ms;
-  return spins.filter((s) => s.createdAt >= since).length;
-}
-
-app.post('/api/stripe/webhook', express.raw({ type: 'application/json' }), (req, res) => {
+app.post('/api/stripe/webhook', express.raw({ type: 'application/json' }), async (req, res) => {
   if (!stripe || !STRIPE_WEBHOOK_SECRET) {
     return res.status(400).send('Stripe not configured');
   }
@@ -166,20 +358,21 @@ app.post('/api/stripe/webhook', express.raw({ type: 'application/json' }), (req,
 
   if (event.type === 'checkout.session.completed' && data.mode === 'subscription') {
     const restaurantId = data.client_reference_id || (data.metadata && data.metadata.restaurantId);
-    const db = loadDb();
-    const restaurant = db.restaurants.find((r) => r.id === restaurantId);
+    const restaurant = await dbGetRestaurantById(restaurantId);
     if (restaurant) {
-      restaurant.stripeCustomerId = data.customer;
-      restaurant.stripeSubscriptionId = data.subscription;
-      restaurant.subscriptionStatus = 'active';
-      saveDb(db);
+      await dbUpdateRestaurant(restaurant.id, {
+        stripe_customer_id: data.customer,
+        stripe_subscription_id: data.subscription,
+        subscription_status: 'active'
+      });
     }
   }
 
   if (event.type === 'customer.subscription.updated' || event.type === 'customer.subscription.deleted') {
     const status = data.status === 'active' ? 'active' : 'inactive';
-    if (!updateSubscriptionById(data.id, status)) {
-      updateSubscriptionByCustomer(data.customer, status);
+    const updatedBySub = await updateSubscriptionById(data.id, status);
+    if (!updatedBySub) {
+      await updateSubscriptionByCustomer(data.customer, status);
     }
   }
 
@@ -213,15 +406,14 @@ app.get('/r/:slug', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'roulette.html'));
 });
 
-app.post('/api/signup', (req, res) => {
+app.post('/api/signup', async (req, res) => {
   const { name, vat, email, reviewUrl, password } = req.body || {};
   if (!name || !vat || !email || !password) {
     return res.status(400).json({ error: 'Champs obligatoires manquants.' });
   }
 
-  const db = loadDb();
   const emailLower = String(email).trim().toLowerCase();
-  const exists = db.restaurants.find((r) => r.email.toLowerCase() === emailLower);
+  const exists = await dbGetRestaurantByEmail(emailLower);
   if (exists) {
     return res.status(409).json({ error: 'Email deja utilise.' });
   }
@@ -241,14 +433,13 @@ app.post('/api/signup', (req, res) => {
     reviewUrl: reviewUrl || '',
     passwordSalt: passwordInfo.salt,
     passwordHash: passwordInfo.hash,
-    createdAt: Date.now(),
+    createdAt: new Date().toISOString(),
     subscriptionStatus: 'inactive',
     themeId: 'neon',
     validationCode: generateValidationCode()
   };
 
-  db.restaurants.push(restaurant);
-  saveDb(db);
+  await dbInsertRestaurant(restaurant);
 
   const loginUrl = '/login';
   const qrUrl = `/r/${slug}`;
@@ -256,15 +447,14 @@ app.post('/api/signup', (req, res) => {
   res.json({ loginUrl, qrUrl });
 });
 
-app.post('/api/login', (req, res) => {
+app.post('/api/login', async (req, res) => {
   const { email, password } = req.body || {};
   if (!email || !password) {
     return res.status(400).json({ error: 'Email et mot de passe requis.' });
   }
 
-  const db = loadDb();
   const emailLower = String(email).trim().toLowerCase();
-  const restaurant = db.restaurants.find((r) => r.email.toLowerCase() === emailLower);
+  const restaurant = await dbGetRestaurantByEmail(emailLower);
   if (!restaurant) {
     return res.status(401).json({ error: 'Identifiants invalides.' });
   }
@@ -283,15 +473,20 @@ app.post('/api/logout', (req, res) => {
   res.json({ ok: true });
 });
 
-app.post('/api/billing/checkout', requireAuth, async (req, res) => {
-  if (!stripe || !STRIPE_SECRET_KEY || !STRIPE_PRICE_ID) {
-    return res.status(400).json({ error: 'Stripe non configure.' });
+app.post('/api/billing/checkout', async (req, res) => {
+  const cookies = parseCookies(req);
+  const token = cookies[SESSION_COOKIE];
+  if (!token) {
+    return res.status(401).json({ error: 'Non authentifie.' });
   }
 
-  const db = loadDb();
-  const restaurant = db.restaurants.find((r) => r.id === req.restaurant.id);
+  const restaurant = await dbGetRestaurantByToken(token);
   if (!restaurant) {
     return res.status(404).json({ error: 'Restaurant introuvable.' });
+  }
+
+  if (!stripe || !STRIPE_SECRET_KEY || !STRIPE_PRICE_ID) {
+    return res.status(400).json({ error: 'Stripe non configure.' });
   }
 
   let customerId = restaurant.stripeCustomerId;
@@ -302,8 +497,7 @@ app.post('/api/billing/checkout', requireAuth, async (req, res) => {
       metadata: { restaurantId: restaurant.id }
     });
     customerId = customer.id;
-    restaurant.stripeCustomerId = customerId;
-    saveDb(db);
+    await dbUpdateRestaurant(restaurant.id, { stripe_customer_id: customerId });
   }
 
   const origin = req.headers.origin || `${req.protocol}://${req.get('host')}`;
@@ -320,15 +514,20 @@ app.post('/api/billing/checkout', requireAuth, async (req, res) => {
   res.json({ url: session.url });
 });
 
-app.post('/api/billing/portal', requireAuth, async (req, res) => {
-  if (!stripe || !STRIPE_SECRET_KEY) {
-    return res.status(400).json({ error: 'Stripe non configure.' });
+app.post('/api/billing/portal', async (req, res) => {
+  const cookies = parseCookies(req);
+  const token = cookies[SESSION_COOKIE];
+  if (!token) {
+    return res.status(401).json({ error: 'Non authentifie.' });
   }
 
-  const db = loadDb();
-  const restaurant = db.restaurants.find((r) => r.id === req.restaurant.id);
+  const restaurant = await dbGetRestaurantByToken(token);
   if (!restaurant) {
     return res.status(404).json({ error: 'Restaurant introuvable.' });
+  }
+
+  if (!stripe || !STRIPE_SECRET_KEY) {
+    return res.status(400).json({ error: 'Stripe non configure.' });
   }
 
   let customerId = restaurant.stripeCustomerId;
@@ -339,8 +538,7 @@ app.post('/api/billing/portal', requireAuth, async (req, res) => {
       metadata: { restaurantId: restaurant.id }
     });
     customerId = customer.id;
-    restaurant.stripeCustomerId = customerId;
-    saveDb(db);
+    await dbUpdateRestaurant(restaurant.id, { stripe_customer_id: customerId });
   }
 
   const origin = req.headers.origin || `${req.protocol}://${req.get('host')}`;
@@ -369,9 +567,13 @@ app.post('/api/owner/logout', (req, res) => {
   res.json({ ok: true });
 });
 
-app.get('/api/owner/restaurants', requireOwner, (req, res) => {
-  const db = loadDb();
-  const restaurants = db.restaurants.map((r) => ({
+app.get('/api/owner/restaurants', async (req, res) => {
+  const cookies = parseCookies(req);
+  if (cookies[OWNER_COOKIE] !== 'ok') {
+    return res.status(401).json({ error: 'Acces refuse.' });
+  }
+  const restaurants = await dbGetRestaurants();
+  res.json({ restaurants: restaurants.map((r) => ({
     id: r.id,
     name: r.name,
     email: r.email,
@@ -381,13 +583,16 @@ app.get('/api/owner/restaurants', requireOwner, (req, res) => {
     subscriptionStatus: r.subscriptionStatus || 'inactive',
     stripeCustomerId: r.stripeCustomerId || '',
     stripeSubscriptionId: r.stripeSubscriptionId || ''
-  }));
-  res.json({ restaurants });
+  })) });
 });
 
-app.get('/api/owner/restaurants.csv', requireOwner, (req, res) => {
-  const db = loadDb();
-  const rows = db.restaurants.map((r) => ({
+app.get('/api/owner/restaurants.csv', async (req, res) => {
+  const cookies = parseCookies(req);
+  if (cookies[OWNER_COOKIE] !== 'ok') {
+    return res.status(401).json({ error: 'Acces refuse.' });
+  }
+  const restaurants = await dbGetRestaurants();
+  const rows = restaurants.map((r) => ({
     id: r.id,
     name: r.name,
     email: r.email,
@@ -404,7 +609,7 @@ app.get('/api/owner/restaurants.csv', requireOwner, (req, res) => {
   const escape = (value) => {
     const s = String(value ?? '');
     if (s.includes('"') || s.includes(';') || s.includes('\n')) {
-      return `"${s.replace(/\"/g, '\"\"')}"`;
+      return `"${s.replace(/\"/g, '""')}"`;
     }
     return s;
   };
@@ -415,67 +620,66 @@ app.get('/api/owner/restaurants.csv', requireOwner, (req, res) => {
   });
   const csv = `\uFEFF${lines.join('\n')}`;
   res.setHeader('Content-Type', 'text/csv; charset=utf-8');
-  res.setHeader('Content-Disposition', 'attachment; filename=\"restaurants.csv\"');
+  res.setHeader('Content-Disposition', 'attachment; filename="restaurants.csv"');
   res.send(csv);
 });
 
-app.get('/api/owner/stats/:id', requireOwner, (req, res) => {
+app.get('/api/owner/stats/:id', async (req, res) => {
+  const cookies = parseCookies(req);
+  if (cookies[OWNER_COOKIE] !== 'ok') {
+    return res.status(401).json({ error: 'Acces refuse.' });
+  }
   const { id } = req.params;
-  const db = loadDb();
-  const spins = db.spins.filter((s) => s.restaurantId === id);
+  const now = Date.now();
+  const day = new Date(now - 24 * 60 * 60 * 1000).toISOString();
+  const week = new Date(now - 7 * 24 * 60 * 60 * 1000).toISOString();
+  const month = new Date(now - 30 * 24 * 60 * 60 * 1000).toISOString();
   res.json({
-    total: spins.length,
-    day: countSpins(spins, 24 * 60 * 60 * 1000),
-    week: countSpins(spins, 7 * 24 * 60 * 60 * 1000),
-    month: countSpins(spins, 30 * 24 * 60 * 60 * 1000)
+    total: await dbCountSpinsSince(id, new Date(0).toISOString()),
+    day: await dbCountSpinsSince(id, day),
+    week: await dbCountSpinsSince(id, week),
+    month: await dbCountSpinsSince(id, month)
   });
 });
 
-app.delete('/api/owner/restaurant/:id', requireOwner, (req, res) => {
-  const { id } = req.params;
-  const db = loadDb();
-  const exists = db.restaurants.find((r) => r.id === id);
-  if (!exists) {
-    return res.status(404).json({ error: 'Restaurant introuvable.' });
+app.delete('/api/owner/restaurant/:id', async (req, res) => {
+  const cookies = parseCookies(req);
+  if (cookies[OWNER_COOKIE] !== 'ok') {
+    return res.status(401).json({ error: 'Acces refuse.' });
   }
-  db.restaurants = db.restaurants.filter((r) => r.id !== id);
-  db.prizes = db.prizes.filter((p) => p.restaurantId !== id);
-  db.spins = db.spins.filter((s) => s.restaurantId !== id);
-  saveDb(db);
+  await dbDeleteRestaurant(req.params.id);
   res.json({ ok: true });
 });
 
-app.post('/api/owner/subscription', requireOwner, (req, res) => {
+app.post('/api/owner/subscription', async (req, res) => {
+  const cookies = parseCookies(req);
+  if (cookies[OWNER_COOKIE] !== 'ok') {
+    return res.status(401).json({ error: 'Acces refuse.' });
+  }
   const { id, status } = req.body || {};
   if (!id || !status) {
     return res.status(400).json({ error: 'Parametres invalides.' });
   }
-  const db = loadDb();
-  const restaurant = db.restaurants.find((r) => r.id === id);
-  if (!restaurant) {
-    return res.status(404).json({ error: 'Restaurant introuvable.' });
-  }
-  restaurant.subscriptionStatus = String(status);
-  saveDb(db);
+  await dbUpdateRestaurant(id, { subscription_status: String(status) });
   res.json({ ok: true });
 });
 
-app.get('/api/admin/me', requireAuth, (req, res) => {
-  const restaurant = req.restaurant;
-  const db = loadDb();
+app.get('/api/admin/me', async (req, res) => {
+  const cookies = parseCookies(req);
+  const token = cookies[SESSION_COOKIE];
+  if (!token) {
+    return res.status(401).json({ error: 'Non authentifie.' });
+  }
+  let restaurant = await dbGetRestaurantByToken(token);
+  if (!restaurant) {
+    return res.status(404).json({ error: 'Restaurant introuvable.' });
+  }
   if (!restaurant.validationCode) {
     restaurant.validationCode = generateValidationCode();
-    const idx = db.restaurants.findIndex((r) => r.id === restaurant.id);
-    if (idx >= 0) {
-      db.restaurants[idx] = restaurant;
-      saveDb(db);
-    }
+    await dbUpdateRestaurant(restaurant.id, { validation_code: restaurant.validationCode });
   }
-  const prizes = db.prizes.filter((p) => p.restaurantId === restaurant.id);
-  const spins = db.spins
-    .filter((s) => s.restaurantId === restaurant.id)
-    .sort((a, b) => b.createdAt - a.createdAt)
-    .slice(0, 50);
+  const prizes = await dbGetPrizesByRestaurant(restaurant.id);
+  const spins = await dbGetSpinsByRestaurant(restaurant.id, 50);
 
   res.json({
     restaurant: {
@@ -493,40 +697,25 @@ app.get('/api/admin/me', requireAuth, (req, res) => {
   });
 });
 
-app.get('/api/admin/validation-code', requireAuth, (req, res) => {
-  const db = loadDb();
-  const restaurant = db.restaurants.find((r) => r.id === req.restaurant.id);
+app.post('/api/admin/prizes', async (req, res) => {
+  const cookies = parseCookies(req);
+  const token = cookies[SESSION_COOKIE];
+  if (!token) {
+    return res.status(401).json({ error: 'Non authentifie.' });
+  }
+  const restaurant = await dbGetRestaurantByToken(token);
   if (!restaurant) {
     return res.status(404).json({ error: 'Restaurant introuvable.' });
   }
-  if (!restaurant.validationCode) {
-    restaurant.validationCode = generateValidationCode();
-    saveDb(db);
+  if (restaurant.subscriptionStatus !== 'active') {
+    return res.status(402).json({ error: 'Abonnement inactif.' });
   }
-  res.json({ code: restaurant.validationCode });
-});
 
-app.post('/api/admin/validation-code/rotate', requireAuth, (req, res) => {
-  const db = loadDb();
-  const restaurant = db.restaurants.find((r) => r.id === req.restaurant.id);
-  if (!restaurant) {
-    return res.status(404).json({ error: 'Restaurant introuvable.' });
-  }
-  restaurant.validationCode = generateValidationCode();
-  saveDb(db);
-  res.json({ code: restaurant.validationCode });
-});
-
-app.post('/api/admin/prizes', requireAuth, requireActiveSubscription, (req, res) => {
   const { prizes } = req.body || {};
   if (!Array.isArray(prizes)) {
     return res.status(400).json({ error: 'Format de liste invalide.' });
   }
 
-  const db = loadDb();
-  const restaurant = req.restaurant;
-
-  db.prizes = db.prizes.filter((p) => p.restaurantId !== restaurant.id);
   const cleaned = prizes
     .map((p) => ({
       id: randomId(),
@@ -537,41 +726,48 @@ app.post('/api/admin/prizes', requireAuth, requireActiveSubscription, (req, res)
     }))
     .filter((p) => p.label.length > 0);
 
-  db.prizes.push(...cleaned);
-  saveDb(db);
-
+  await dbReplacePrizes(restaurant.id, cleaned);
   res.json({ ok: true });
 });
 
-app.post('/api/admin/restaurant', requireAuth, requireActiveSubscription, (req, res) => {
+app.post('/api/admin/restaurant', async (req, res) => {
+  const cookies = parseCookies(req);
+  const token = cookies[SESSION_COOKIE];
+  if (!token) {
+    return res.status(401).json({ error: 'Non authentifie.' });
+  }
+  const restaurant = await dbGetRestaurantByToken(token);
+  if (!restaurant) {
+    return res.status(404).json({ error: 'Restaurant introuvable.' });
+  }
+  if (restaurant.subscriptionStatus !== 'active') {
+    return res.status(402).json({ error: 'Abonnement inactif.' });
+  }
+
   const { name, email, reviewUrl, themeId } = req.body || {};
-
-  const db = loadDb();
-  const restaurant = req.restaurant;
-
   if (name) restaurant.name = String(name).trim();
   if (email) restaurant.email = String(email).trim();
   if (reviewUrl !== undefined) restaurant.reviewUrl = String(reviewUrl).trim();
   if (themeId) restaurant.themeId = String(themeId).trim();
 
-  const idx = db.restaurants.findIndex((r) => r.id === restaurant.id);
-  if (idx >= 0) {
-    db.restaurants[idx] = restaurant;
-  }
+  await dbUpdateRestaurant(restaurant.id, {
+    name: restaurant.name,
+    email: restaurant.email,
+    review_url: restaurant.reviewUrl,
+    theme_id: restaurant.themeId
+  });
 
-  saveDb(db);
   res.json({ ok: true });
 });
 
-app.get('/api/restaurant/:slug', (req, res) => {
+app.get('/api/restaurant/:slug', async (req, res) => {
   const { slug } = req.params;
-  const db = loadDb();
-  const restaurant = db.restaurants.find((r) => r.slug === slug);
+  const restaurant = await dbGetRestaurantBySlug(slug);
   if (!restaurant) {
     return res.status(404).json({ error: 'Restaurant introuvable.' });
   }
 
-  const prizes = db.prizes.filter((p) => p.restaurantId === restaurant.id);
+  const prizes = await dbGetPrizesByRestaurant(restaurant.id);
   res.json({
     restaurant: {
       name: restaurant.name,
@@ -583,20 +779,20 @@ app.get('/api/restaurant/:slug', (req, res) => {
   });
 });
 
-app.post('/api/spin/:slug', (req, res) => {
+app.post('/api/spin/:slug', async (req, res) => {
   const { slug } = req.params;
-  const db = loadDb();
-  const restaurant = db.restaurants.find((r) => r.slug === slug);
+  const restaurant = await dbGetRestaurantBySlug(slug);
   if (!restaurant) {
     return res.status(404).json({ error: 'Restaurant introuvable.' });
   }
+
   const providedCode = String((req.body || {}).code || '').trim();
   const validCode = restaurant.validationCode || '';
   if (!validCode || providedCode !== validCode) {
     return res.status(403).json({ error: 'Code de validation invalide.' });
   }
 
-  const prizes = db.prizes.filter((p) => p.restaurantId === restaurant.id && p.probability > 0);
+  const prizes = (await dbGetPrizesByRestaurant(restaurant.id)).filter((p) => p.probability > 0);
   let picked = pickWeighted(prizes);
   let retryUsed = false;
   if (picked && picked.isRetry) {
@@ -610,12 +806,11 @@ app.post('/api/spin/:slug', (req, res) => {
     restaurantId: restaurant.id,
     prizeId: picked ? picked.id : null,
     prizeLabel: picked ? picked.label : 'Merci pour votre avis !',
-    createdAt: Date.now(),
+    createdAt: new Date().toISOString(),
     reviewConfirmed: Boolean((req.body || {}).reviewConfirmed)
   };
 
-  db.spins.push(spin);
-  saveDb(db);
+  await dbInsertSpin(spin);
 
   res.json({
     prize: spin.prizeLabel,
@@ -626,4 +821,9 @@ app.post('/api/spin/:slug', (req, res) => {
 
 app.listen(PORT, () => {
   console.log(`Roulette MVP running on http://localhost:${PORT}`);
+  if (USE_SUPABASE) {
+    console.log('Supabase enabled');
+  } else {
+    console.log('Using local db.json');
+  }
 });
