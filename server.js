@@ -385,6 +385,39 @@ app.get('/api/owner/restaurants', requireOwner, (req, res) => {
   res.json({ restaurants });
 });
 
+app.get('/api/owner/restaurants.csv', requireOwner, (req, res) => {
+  const db = loadDb();
+  const rows = db.restaurants.map((r) => ({
+    id: r.id,
+    name: r.name,
+    email: r.email,
+    vat: r.vat,
+    slug: r.slug,
+    createdAt: r.createdAt || '',
+    subscriptionStatus: r.subscriptionStatus || 'inactive',
+    stripeCustomerId: r.stripeCustomerId || '',
+    stripeSubscriptionId: r.stripeSubscriptionId || ''
+  }));
+  const header = Object.keys(rows[0] || {
+    id: '', name: '', email: '', vat: '', slug: '', createdAt: '', subscriptionStatus: '', stripeCustomerId: '', stripeSubscriptionId: ''
+  });
+  const escape = (value) => {
+    const s = String(value ?? '');
+    if (s.includes('"') || s.includes(',') || s.includes('\n')) {
+      return `"${s.replace(/\"/g, '\"\"')}"`;
+    }
+    return s;
+  };
+  const lines = [header.join(',')];
+  rows.forEach((row) => {
+    lines.push(header.map((key) => escape(row[key])).join(','));
+  });
+  const csv = lines.join('\n');
+  res.setHeader('Content-Type', 'text/csv; charset=utf-8');
+  res.setHeader('Content-Disposition', 'attachment; filename=\"restaurants.csv\"');
+  res.send(csv);
+});
+
 app.get('/api/owner/stats/:id', requireOwner, (req, res) => {
   const { id } = req.params;
   const db = loadDb();

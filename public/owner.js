@@ -1,5 +1,6 @@
 const table = document.querySelector('#owner-table');
 const logoutBtn = document.querySelector('#owner-logout');
+const exportBtn = document.querySelector('#export-csv');
 
 function formatDate(ts) {
   if (!ts) return '--';
@@ -107,5 +108,11 @@ logoutBtn.addEventListener('click', async () => {
   await fetch('/api/owner/logout', { method: 'POST' });
   window.location.href = '/owner';
 });
+
+if (exportBtn) {
+  exportBtn.addEventListener('click', () => {
+    window.location.href = '/api/owner/restaurants.csv';
+  });
+}
 
 loadOwner();
