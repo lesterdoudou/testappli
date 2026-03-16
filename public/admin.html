@@ -50,6 +50,15 @@
               Lien Google Review
               <input name="reviewUrl" type="url" placeholder="https://g.page/" />
             </label>
+            <label>
+              Theme client
+              <select name="themeId" id="theme-select">
+                <option value="neon">Neon (flash)</option>
+                <option value="sunset">Sunset (chaud)</option>
+                <option value="mint">Mint (frais)</option>
+                <option value="noir">Noir (luxe)</option>
+              </select>
+            </label>
             <button class="btn" type="submit">Mettre a jour</button>
           </form>
         </div>
@@ -86,7 +95,10 @@
           <h2>Roue de la fortune</h2>
           <button id="add-prize" class="btn ghost" type="button">Ajouter un cadeau</button>
         </div>
-        <p class="muted">Choisissez vos cadeaux et leurs chances. Mettez 0 pour retirer un cadeau de la roue.</p>
+        <p class="muted">
+          Choisissez vos cadeaux et leurs chances. Mettez 0 pour retirer un cadeau de la roue.
+          Les probabilites vont de 1 a 100 : 100 = tres forte chance, 1 = faible chance.
+        </p>
         <div class="table">
           <div class="table-row header">
             <span>Cadeau</span>
@@ -94,6 +106,14 @@
             <span></span>
           </div>
           <div id="prize-rows"></div>
+        </div>
+        <div class="table-row">
+          <label class="checkbox">
+            <input id="retry-enabled" type="checkbox" />
+            Activer "Retente ta chance"
+          </label>
+          <input id="retry-probability" type="number" min="0" step="1" value="0" />
+          <span></span>
         </div>
         <button id="save-prizes" class="btn" type="button">Enregistrer la roue</button>
         <p id="save-status" class="muted"></p>

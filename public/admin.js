@@ -7,6 +7,7 @@ const savePrizesBtn = document.querySelector('#save-prizes');
 const saveStatus = document.querySelector('#save-status');
 const spinList = document.querySelector('#spin-list');
 const restaurantForm = document.querySelector('#restaurant-form');
+const themeSelect = document.querySelector('#theme-select');
 const subscriptionStatusEl = document.querySelector('#subscription-status');
 const subscribeBtn = document.querySelector('#subscribe-btn');
 const manageBtn = document.querySelector('#manage-btn');
@@ -15,6 +16,8 @@ const subscriptionBanner = document.querySelector('#subscription-banner');
 const logoutBtn = document.querySelector('#logout-btn');
 const validationCodeEl = document.querySelector('#validation-code');
 const rotateCodeBtn = document.querySelector('#rotate-code');
+const retryEnabled = document.querySelector('#retry-enabled');
+const retryProbability = document.querySelector('#retry-probability');
 
 let restaurantData = null;
 let isEditing = false;
@@ -75,7 +78,9 @@ function renderPrizes(prizes) {
     prizeRows.appendChild(createPrizeRow({ label: '', probability: 0 }));
     return;
   }
-  prizes.forEach((prize) => prizeRows.appendChild(createPrizeRow(prize)));
+  prizes
+    .filter((prize) => !prize.isRetry)
+    .forEach((prize) => prizeRows.appendChild(createPrizeRow(prize)));
 }
 
 function renderSubscription(status) {
@@ -117,6 +122,9 @@ async function loadAdmin() {
   restaurantForm.elements.name.value = data.restaurant.name;
   restaurantForm.elements.email.value = data.restaurant.email;
   restaurantForm.elements.reviewUrl.value = data.restaurant.reviewUrl || '';
+  if (themeSelect) {
+    themeSelect.value = data.restaurant.themeId || 'neon';
+  }
 
   const qrUrl = `${window.location.origin}/r/${data.restaurant.slug}`;
   qrLink.href = qrUrl;
@@ -137,6 +145,11 @@ async function loadAdmin() {
   if (validationCodeEl) {
     validationCodeEl.textContent = data.restaurant.validationCode || '------';
   }
+  if (retryEnabled && retryProbability) {
+    const retryPrize = (data.prizes || []).find((p) => p.isRetry);
+    retryEnabled.checked = Boolean(retryPrize);
+    retryProbability.value = retryPrize ? Number(retryPrize.probability || 0) : 0;
+  }
 }
 
 addPrizeBtn.addEventListener('click', () => {
@@ -153,6 +166,13 @@ savePrizesBtn.addEventListener('click', async () => {
       probability: inputs[1].value
     };
   });
+  if (retryEnabled && retryProbability && retryEnabled.checked) {
+    prizes.push({
+      label: 'Retente ta chance',
+      probability: retryProbability.value,
+      isRetry: true
+    });
+  }
 
   saveStatus.textContent = 'Enregistrement...';
   const response = await fetch('/api/admin/prizes', {
@@ -180,7 +200,8 @@ restaurantForm.addEventListener('submit', async (event) => {
   const payload = {
     name: restaurantForm.elements.name.value,
     email: restaurantForm.elements.email.value,
-    reviewUrl: restaurantForm.elements.reviewUrl.value
+    reviewUrl: restaurantForm.elements.reviewUrl.value,
+    themeId: themeSelect ? themeSelect.value : 'neon'
   };
 
   const response = await fetch('/api/admin/restaurant', {

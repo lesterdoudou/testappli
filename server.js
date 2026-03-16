@@ -145,6 +145,11 @@ function updateSubscriptionById(subscriptionId, status) {
   return true;
 }
 
+function countSpins(spins, ms) {
+  const since = Date.now() - ms;
+  return spins.filter((s) => s.createdAt >= since).length;
+}
+
 app.post('/api/stripe/webhook', express.raw({ type: 'application/json' }), (req, res) => {
   if (!stripe || !STRIPE_WEBHOOK_SECRET) {
     return res.status(400).send('Stripe not configured');
@@ -238,6 +243,7 @@ app.post('/api/signup', (req, res) => {
     passwordHash: passwordInfo.hash,
     createdAt: Date.now(),
     subscriptionStatus: 'inactive',
+    themeId: 'neon',
     validationCode: generateValidationCode()
   };
 
@@ -379,6 +385,32 @@ app.get('/api/owner/restaurants', requireOwner, (req, res) => {
   res.json({ restaurants });
 });
 
+app.get('/api/owner/stats/:id', requireOwner, (req, res) => {
+  const { id } = req.params;
+  const db = loadDb();
+  const spins = db.spins.filter((s) => s.restaurantId === id);
+  res.json({
+    total: spins.length,
+    day: countSpins(spins, 24 * 60 * 60 * 1000),
+    week: countSpins(spins, 7 * 24 * 60 * 60 * 1000),
+    month: countSpins(spins, 30 * 24 * 60 * 60 * 1000)
+  });
+});
+
+app.delete('/api/owner/restaurant/:id', requireOwner, (req, res) => {
+  const { id } = req.params;
+  const db = loadDb();
+  const exists = db.restaurants.find((r) => r.id === id);
+  if (!exists) {
+    return res.status(404).json({ error: 'Restaurant introuvable.' });
+  }
+  db.restaurants = db.restaurants.filter((r) => r.id !== id);
+  db.prizes = db.prizes.filter((p) => p.restaurantId !== id);
+  db.spins = db.spins.filter((s) => s.restaurantId !== id);
+  saveDb(db);
+  res.json({ ok: true });
+});
+
 app.post('/api/owner/subscription', requireOwner, (req, res) => {
   const { id, status } = req.body || {};
   if (!id || !status) {
@@ -419,7 +451,8 @@ app.get('/api/admin/me', requireAuth, (req, res) => {
       slug: restaurant.slug,
       reviewUrl: restaurant.reviewUrl || '',
       subscriptionStatus: restaurant.subscriptionStatus || 'inactive',
-      validationCode: restaurant.validationCode || ''
+      validationCode: restaurant.validationCode || '',
+      themeId: restaurant.themeId || 'neon'
     },
     prizes,
     spins
@@ -465,7 +498,8 @@ app.post('/api/admin/prizes', requireAuth, requireActiveSubscription, (req, res)
       id: randomId(),
       restaurantId: restaurant.id,
       label: String(p.label || '').trim(),
-      probability: Math.max(0, Number(p.probability || 0))
+      probability: Math.max(0, Number(p.probability || 0)),
+      isRetry: Boolean(p.isRetry)
     }))
     .filter((p) => p.label.length > 0);
 
@@ -476,7 +510,7 @@ app.post('/api/admin/prizes', requireAuth, requireActiveSubscription, (req, res)
 });
 
 app.post('/api/admin/restaurant', requireAuth, requireActiveSubscription, (req, res) => {
-  const { name, email, reviewUrl } = req.body || {};
+  const { name, email, reviewUrl, themeId } = req.body || {};
 
   const db = loadDb();
   const restaurant = req.restaurant;
@@ -484,6 +518,7 @@ app.post('/api/admin/restaurant', requireAuth, requireActiveSubscription, (req, 
   if (name) restaurant.name = String(name).trim();
   if (email) restaurant.email = String(email).trim();
   if (reviewUrl !== undefined) restaurant.reviewUrl = String(reviewUrl).trim();
+  if (themeId) restaurant.themeId = String(themeId).trim();
 
   const idx = db.restaurants.findIndex((r) => r.id === restaurant.id);
   if (idx >= 0) {
@@ -507,7 +542,8 @@ app.get('/api/restaurant/:slug', (req, res) => {
     restaurant: {
       name: restaurant.name,
       reviewUrl: restaurant.reviewUrl || '',
-      subscriptionStatus: restaurant.subscriptionStatus || 'inactive'
+      subscriptionStatus: restaurant.subscriptionStatus || 'inactive',
+      themeId: restaurant.themeId || 'neon'
     },
     prizes
   });
@@ -527,7 +563,13 @@ app.post('/api/spin/:slug', (req, res) => {
   }
 
   const prizes = db.prizes.filter((p) => p.restaurantId === restaurant.id && p.probability > 0);
-  const picked = pickWeighted(prizes);
+  let picked = pickWeighted(prizes);
+  let retryUsed = false;
+  if (picked && picked.isRetry) {
+    retryUsed = true;
+    const retryless = prizes.filter((p) => !p.isRetry);
+    picked = pickWeighted(retryless);
+  }
 
   const spin = {
     id: randomId(),
@@ -543,7 +585,8 @@ app.post('/api/spin/:slug', (req, res) => {
 
   res.json({
     prize: spin.prizeLabel,
-    prizeId: spin.prizeId
+    prizeId: spin.prizeId,
+    retryUsed
   });
 });
 

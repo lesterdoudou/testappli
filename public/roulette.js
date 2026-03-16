@@ -109,7 +109,7 @@ async function loadRoulette() {
     return;
   }
 
-  const data = await response.json();
+  const data = await response.json();\n  const themeId = data.restaurant.themeId || 'neon';\n  document.body.classList.remove('theme-neon','theme-sunset','theme-mint','theme-noir');\n  document.body.classList.add(	heme-);
   const subscriptionStatus = data.restaurant.subscriptionStatus || 'inactive';
 
   titleEl.textContent = data.restaurant.name;
@@ -174,7 +174,7 @@ spinBtn.addEventListener('click', async () => {
     return;
   }
 
-  const data = await response.json();
+  const data = await response.json();\n  const themeId = data.restaurant.themeId || 'neon';\n  document.body.classList.remove('theme-neon','theme-sunset','theme-mint','theme-noir');\n  document.body.classList.add(	heme-);
   const index = wheelPrizes.findIndex((p) => p.id === data.prizeId);
   const targetIndex = index >= 0 ? index : Math.floor(Math.random() * Math.max(1, wheelPrizes.length));
 
@@ -192,3 +192,4 @@ spinBtn.addEventListener('click', async () => {
 });
 
 loadRoulette();
+
