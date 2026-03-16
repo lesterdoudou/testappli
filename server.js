@@ -403,16 +403,17 @@ app.get('/api/owner/restaurants.csv', requireOwner, (req, res) => {
   });
   const escape = (value) => {
     const s = String(value ?? '');
-    if (s.includes('"') || s.includes(',') || s.includes('\n')) {
+    if (s.includes('"') || s.includes(';') || s.includes('\n')) {
       return `"${s.replace(/\"/g, '\"\"')}"`;
     }
     return s;
   };
-  const lines = [header.join(',')];
+  const delimiter = ';';
+  const lines = [header.join(delimiter)];
   rows.forEach((row) => {
-    lines.push(header.map((key) => escape(row[key])).join(','));
+    lines.push(header.map((key) => escape(row[key])).join(delimiter));
   });
-  const csv = lines.join('\n');
+  const csv = `\uFEFF${lines.join('\n')}`;
   res.setHeader('Content-Type', 'text/csv; charset=utf-8');
   res.setHeader('Content-Disposition', 'attachment; filename=\"restaurants.csv\"');
   res.send(csv);
