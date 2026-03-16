@@ -46,15 +46,15 @@ body.page {
   font-size: clamp(2rem, 2.2vw + 2rem, 3.3rem);
   margin: 0;
   letter-spacing: -0.02em;
-  background: linear-gradient(120deg, #0b0f19 0%, #151a2e 55%, #0b0f19 100%);
-  -webkit-background-clip: text;
-  background-clip: text;
+  color: #f7f9ff;
+  text-shadow: 0 4px 18px rgba(0, 0, 0, 0.35);
 }
 
 .hero p {
   max-width: 640px;
-  color: var(--muted);
+  color: #d7deed;
   font-size: 1.05rem;
+  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
 }
 
 .pill {
@@ -449,7 +449,7 @@ textarea {
   }
 
   .grid {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   .table-row {
