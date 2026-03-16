@@ -118,6 +118,7 @@ function mapRestaurantRow(row) {
     subscriptionStatus: row.subscription_status || 'inactive',
     themeId: row.theme_id || 'neon',
     validationCode: row.validation_code || '',
+    logoUrl: row.logo_url || '',
     stripeCustomerId: row.stripe_customer_id || '',
     stripeSubscriptionId: row.stripe_subscription_id || ''
   };
@@ -138,6 +139,7 @@ function mapRestaurantToRow(restaurant) {
     subscription_status: restaurant.subscriptionStatus || 'inactive',
     theme_id: restaurant.themeId || 'neon',
     validation_code: restaurant.validationCode || '',
+    logo_url: restaurant.logoUrl || '',
     stripe_customer_id: restaurant.stripeCustomerId || '',
     stripe_subscription_id: restaurant.stripeSubscriptionId || ''
   };
@@ -407,7 +409,7 @@ app.get('/r/:slug', (req, res) => {
 });
 
 app.post('/api/signup', async (req, res) => {
-  const { name, vat, email, reviewUrl, password } = req.body || {};
+  const { name, vat, email, reviewUrl, password, logoDataUrl } = req.body || {};
   if (!name || !vat || !email || !password) {
     return res.status(400).json({ error: 'Champs obligatoires manquants.' });
   }
@@ -436,7 +438,8 @@ app.post('/api/signup', async (req, res) => {
     createdAt: new Date().toISOString(),
     subscriptionStatus: 'inactive',
     themeId: 'neon',
-    validationCode: generateValidationCode()
+    validationCode: generateValidationCode(),
+    logoUrl: logoDataUrl || ''
   };
 
   await dbInsertRestaurant(restaurant);
@@ -690,7 +693,8 @@ app.get('/api/admin/me', async (req, res) => {
       reviewUrl: restaurant.reviewUrl || '',
       subscriptionStatus: restaurant.subscriptionStatus || 'inactive',
       validationCode: restaurant.validationCode || '',
-      themeId: restaurant.themeId || 'neon'
+      themeId: restaurant.themeId || 'neon',
+      logoUrl: restaurant.logoUrl || ''
     },
     prizes,
     spins
@@ -773,7 +777,8 @@ app.get('/api/restaurant/:slug', async (req, res) => {
       name: restaurant.name,
       reviewUrl: restaurant.reviewUrl || '',
       subscriptionStatus: restaurant.subscriptionStatus || 'inactive',
-      themeId: restaurant.themeId || 'neon'
+      themeId: restaurant.themeId || 'neon',
+      logoUrl: restaurant.logoUrl || ''
     },
     prizes
   });

@@ -8,6 +8,7 @@ const saveStatus = document.querySelector('#save-status');
 const spinList = document.querySelector('#spin-list');
 const restaurantForm = document.querySelector('#restaurant-form');
 const themeSelect = document.querySelector('#theme-select');
+const brandLogoAdmin = document.querySelector('#brand-logo-admin');
 const subscriptionStatusEl = document.querySelector('#subscription-status');
 const subscribeBtn = document.querySelector('#subscribe-btn');
 const manageBtn = document.querySelector('#manage-btn');
@@ -133,6 +134,14 @@ async function loadAdmin() {
   restaurantForm.elements.reviewUrl.value = data.restaurant.reviewUrl || '';
   if (themeSelect) {
     themeSelect.value = data.restaurant.themeId || 'neon';
+  }
+  if (brandLogoAdmin) {
+    if (data.restaurant.logoUrl) {
+      brandLogoAdmin.src = data.restaurant.logoUrl;
+      brandLogoAdmin.classList.remove('hidden');
+    } else {
+      brandLogoAdmin.classList.add('hidden');
+    }
   }
 
   const qrUrl = `${window.location.origin}/r/${data.restaurant.slug}`;

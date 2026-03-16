@@ -7,7 +7,26 @@ form.addEventListener('submit', async (event) => {
   event.preventDefault();
   const formData = new FormData(form);
   const payload = Object.fromEntries(formData.entries());
+  const file = formData.get('logo');
 
+  if (file && file.size) {
+    if (file.size > 600 * 1024) {
+      alert('Logo trop lourd (max 600 KB).');
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = async () => {
+      payload.logoDataUrl = reader.result;
+      await submitSignup(payload);
+    };
+    reader.readAsDataURL(file);
+    return;
+  }
+
+  await submitSignup(payload);
+});
+
+async function submitSignup(payload) {
   const response = await fetch('/api/signup', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -31,4 +50,4 @@ form.addEventListener('submit', async (event) => {
   success.classList.remove('hidden');
   success.scrollIntoView({ behavior: 'smooth' });
   form.reset();
-});
+}

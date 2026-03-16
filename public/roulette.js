@@ -118,6 +118,15 @@ async function loadRoulette() {
   const subscriptionStatus = data.restaurant.subscriptionStatus || 'inactive';
   const themeId = data.restaurant.themeId || 'neon';
   applyTheme(themeId);
+  const brandLogoClient = document.querySelector('#brand-logo-client');
+  if (brandLogoClient) {
+    if (data.restaurant.logoUrl) {
+      brandLogoClient.src = data.restaurant.logoUrl;
+      brandLogoClient.classList.remove('hidden');
+    } else {
+      brandLogoClient.classList.add('hidden');
+    }
+  }
 
   titleEl.textContent = data.restaurant.name;
   reviewLink.href = data.restaurant.reviewUrl || '#';
