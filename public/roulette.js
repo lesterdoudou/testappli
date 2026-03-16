@@ -13,6 +13,7 @@ let currentRotation = 0;
 let spinning = false;
 
 const palette = ['#ffb703', '#fb8500', '#219ebc', '#8ecae6', '#ff006e', '#8338ec'];
+const SPIN_DURATION = 2600;
 
 function drawWheel(rotation = 0) {
   const { width, height } = canvas;
@@ -69,11 +70,10 @@ function spinToIndex(index) {
   const spins = 5 * Math.PI * 2;
   const start = currentRotation;
   const end = targetAngle + spins;
-  const duration = 2600;
   const startTime = performance.now();
 
   function animate(now) {
-    const progress = Math.min((now - startTime) / duration, 1);
+    const progress = Math.min((now - startTime) / SPIN_DURATION, 1);
     const eased = easeOutCubic(progress);
     currentRotation = start + (end - start) * eased;
     drawWheel(currentRotation);
@@ -178,9 +178,17 @@ spinBtn.addEventListener('click', async () => {
   const index = wheelPrizes.findIndex((p) => p.id === data.prizeId);
   const targetIndex = index >= 0 ? index : Math.floor(Math.random() * Math.max(1, wheelPrizes.length));
 
+  if (data.retryUsed) {
+    resultEl.textContent = 'Retente ta chance...';
+    setTimeout(() => {
+      resultEl.textContent = data.prize;
+    }, SPIN_DURATION);
+  } else {
+    resultEl.textContent = data.prize;
+  }
+
   spinToIndex(targetIndex);
   markSpun();
-  resultEl.textContent = data.prize;
 });
 
 loadRoulette();
