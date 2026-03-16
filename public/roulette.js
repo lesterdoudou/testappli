@@ -1,0 +1,167 @@
+const slug = window.location.pathname.split('/').pop();
+const titleEl = document.querySelector('#restaurant-title');
+const reviewLink = document.querySelector('#review-link');
+const reviewCheck = document.querySelector('#review-check');
+const spinBtn = document.querySelector('#spin-btn');
+const resultEl = document.querySelector('#spin-result');
+const canvas = document.querySelector('#wheel');
+const ctx = canvas.getContext('2d');
+
+let wheelPrizes = [];
+let currentRotation = 0;
+let spinning = false;
+
+const palette = ['#ffb703', '#fb8500', '#219ebc', '#8ecae6', '#ff006e', '#8338ec'];
+
+function drawWheel(rotation = 0) {
+  const { width, height } = canvas;
+  const radius = width / 2;
+  ctx.clearRect(0, 0, width, height);
+
+  if (!wheelPrizes.length) {
+    ctx.fillStyle = '#d9dbe7';
+    ctx.beginPath();
+    ctx.arc(radius, radius, radius - 4, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.fillStyle = '#0e0f19';
+    ctx.font = '16px "Space Grotesk", sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('Aucun cadeau', radius, radius);
+    return;
+  }
+
+  const angleStep = (Math.PI * 2) / wheelPrizes.length;
+
+  wheelPrizes.forEach((prize, index) => {
+    const start = rotation + index * angleStep;
+    const end = start + angleStep;
+    ctx.beginPath();
+    ctx.moveTo(radius, radius);
+    ctx.arc(radius, radius, radius - 4, start, end);
+    ctx.fillStyle = palette[index % palette.length];
+    ctx.fill();
+
+    ctx.save();
+    ctx.translate(radius, radius);
+    ctx.rotate(start + angleStep / 2);
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillStyle = '#0e0f19';
+    const fontSize = Math.max(16, Math.min(22, radius * 0.13));
+    ctx.font = `600 ${fontSize}px "Space Grotesk", sans-serif`
+    const textRadius = radius * 0.62;
+    ctx.fillText(prize.label, textRadius, 0);
+    ctx.restore();
+  });
+}
+
+function easeOutCubic(t) {
+  return 1 - Math.pow(1 - t, 3);
+}
+
+function spinToIndex(index) {
+  if (!wheelPrizes.length) return;
+  const angleStep = (Math.PI * 2) / wheelPrizes.length;
+  const targetAngle = Math.PI * 1.5 - (index + 0.5) * angleStep;
+  const spins = 5 * Math.PI * 2;
+  const start = currentRotation;
+  const end = targetAngle + spins;
+  const duration = 2600;
+  const startTime = performance.now();
+
+  function animate(now) {
+    const progress = Math.min((now - startTime) / duration, 1);
+    const eased = easeOutCubic(progress);
+    currentRotation = start + (end - start) * eased;
+    drawWheel(currentRotation);
+    if (progress < 1) {
+      requestAnimationFrame(animate);
+    } else {
+      spinning = false;
+      spinBtn.disabled = false;
+    }
+  }
+
+  requestAnimationFrame(animate);
+}
+
+function canSpinToday() {
+  const key = `roulette-spin-${slug}`;
+  const last = localStorage.getItem(key);
+  const today = new Date().toISOString().slice(0, 10);
+  return last !== today;
+}
+
+function markSpun() {
+  const key = `roulette-spin-${slug}`;
+  const today = new Date().toISOString().slice(0, 10);
+  localStorage.setItem(key, today);
+}
+
+async function loadRoulette() {
+  const response = await fetch(`/api/restaurant/${slug}`);
+  if (!response.ok) {
+    titleEl.textContent = 'Restaurant introuvable.';
+    spinBtn.disabled = true;
+    return;
+  }
+
+  const data = await response.json();
+  titleEl.textContent = data.restaurant.name;
+  reviewLink.href = data.restaurant.reviewUrl || '#';
+  reviewLink.classList.toggle('disabled', !data.restaurant.reviewUrl);
+  if (!data.restaurant.reviewUrl) {
+    reviewLink.textContent = 'Lien Google Review manquant';
+  }
+
+  wheelPrizes = data.prizes.filter((p) => p.probability > 0);
+  drawWheel(currentRotation);
+  spinBtn.disabled = !canSpinToday();
+  if (!canSpinToday()) {
+    resultEl.textContent = 'Vous avez déjà tourné aujourd\'hui.';
+  }
+}
+
+spinBtn.addEventListener('click', async () => {
+  if (spinning) return;
+  if (!reviewCheck.checked) {
+    alert('Merci de confirmer que vous avez laissé un avis.');
+    return;
+  }
+
+  if (!canSpinToday()) {
+    resultEl.textContent = 'Vous avez déjà tourné aujourd\'hui.';
+    return;
+  }
+
+  spinBtn.disabled = true;
+  spinning = true;
+  resultEl.textContent = 'La roue tourne...';
+
+  const response = await fetch(`/api/spin/${slug}`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ reviewConfirmed: true })
+  });
+
+  if (!response.ok) {
+    resultEl.textContent = 'Erreur lors du tirage.';
+    spinBtn.disabled = false;
+    spinning = false;
+    return;
+  }
+
+  const data = await response.json();
+  const index = wheelPrizes.findIndex((p) => p.id === data.prizeId);
+  const targetIndex = index >= 0 ? index : Math.floor(Math.random() * Math.max(1, wheelPrizes.length));
+
+  spinToIndex(targetIndex);
+  markSpun();
+  resultEl.textContent = data.prize;
+});
+
+loadRoulette();
+
+
+

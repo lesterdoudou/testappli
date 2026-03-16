@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Roulette Avis - Client</title>
+    <link rel="stylesheet" href="/styles.css" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  </head>
+  <body class="page">
+    <main class="shell">
+      <header class="hero">
+        <span class="pill">Roulette client</span>
+        <h1 id="restaurant-title">Chargement...</h1>
+        <p>Laissez un avis Google, puis tentez votre chance.</p>
+      </header>
+
+      <section class="grid">
+        <div class="card">
+          <h2>Etape 1 · Avis Google</h2>
+          <p>Un avis = une chance de tourner la roue.</p>
+          <a id="review-link" class="btn" href="#" target="_blank" rel="noopener">Ouvrir Google Review</a>
+          <label class="checkbox">
+            <input id="review-check" type="checkbox" />
+            J'ai laisse un avis Google
+          </label>
+        </div>
+
+        <div class="card">
+          <h2>Etape 2 · La roue</h2>
+          <div class="wheel-wrap">
+            <canvas id="wheel" width="320" height="320"></canvas>
+            <div class="pointer"></div>
+          </div>
+          <button id="spin-btn" class="btn" type="button">Tourner la roue</button>
+          <p id="spin-result" class="result"></p>
+        </div>
+      </section>
+
+      <section class="card">
+        <h2>A savoir</h2>
+        <p class="muted">L'API Google sera ajoutee plus tard. Pour l'instant, la validation est declarative.</p>
+      </section>
+    </main>
+
+    <script src="/roulette.js"></script>
+  </body>
+</html>
+

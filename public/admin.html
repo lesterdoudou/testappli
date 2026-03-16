@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Roulette Avis - Dashboard</title>
+    <link rel="stylesheet" href="/styles.css" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  </head>
+  <body class="page">
+    <main class="shell">
+      <header class="hero">
+        <span class="pill">Dashboard restaurant</span>
+        <h1 id="restaurant-name">Chargement...</h1>
+        <p>Configurez vos cadeaux et surveillez les avis qui declenchent une roulette.</p>
+      </header>
+
+      <section class="grid">
+        <div class="card">
+          <h2>Votre lien QR</h2>
+          <p>Partagez ce QR code sur place pour que les clients puissent acceder a la roulette.</p>
+          <div class="qr" id="qr"></div>
+          <div class="link-list">
+            <div>
+              <span>URL</span>
+              <a id="qr-link" href="#">--</a>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <h2>Infos etablissement</h2>
+          <form id="restaurant-form" class="form">
+            <label>
+              Nom d'enseigne
+              <input name="name" type="text" required />
+            </label>
+            <label>
+              Email
+              <input name="email" type="email" required />
+            </label>
+            <label>
+              Lien Google Review
+              <input name="reviewUrl" type="url" placeholder="https://g.page/" />
+            </label>
+            <button class="btn" type="submit">Mettre a jour</button>
+          </form>
+        </div>
+
+        <div class="card">
+          <h2>Abonnement</h2>
+          <p class="muted">12 EUR / mois. Activez votre abonnement pour acceder aux fonctionnalites completes.</p>
+          <div class="link-list">
+            <div>
+              <span>Statut</span>
+              <span id="subscription-status" class="badge inactive">inactive</span>
+            </div>
+          </div>
+          <button id="subscribe-btn" class="btn" type="button">Activer l'abonnement</button>
+          <p id="subscribe-status" class="muted"></p>
+        </div>
+      </section>
+
+      <section class="card">
+        <div class="card-head">
+          <h2>Roue de la fortune</h2>
+          <button id="add-prize" class="btn ghost" type="button">Ajouter un cadeau</button>
+        </div>
+        <p class="muted">Choisissez vos cadeaux et leurs chances. Mettez 0 pour retirer un cadeau de la roue.</p>
+        <div class="table">
+          <div class="table-row header">
+            <span>Cadeau</span>
+            <span>Probabilite</span>
+            <span></span>
+          </div>
+          <div id="prize-rows"></div>
+        </div>
+        <button id="save-prizes" class="btn" type="button">Enregistrer la roue</button>
+        <p id="save-status" class="muted"></p>
+      </section>
+
+      <section class="card">
+        <h2>Dernieres notifications</h2>
+        <div id="spin-list" class="stack"></div>
+      </section>
+    </main>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <script src="/admin.js"></script>
+  </body>
+</html>

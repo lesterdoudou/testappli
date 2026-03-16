@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Owner - Connexion</title>
+    <link rel="stylesheet" href="/styles.css" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  </head>
+  <body class="page">
+    <main class="shell">
+      <header class="hero">
+        <span class="pill">Owner</span>
+        <h1>Acces admin global</h1>
+        <p>Connexion reservee au developpeur.</p>
+      </header>
+
+      <section class="card">
+        <h2>Connexion owner</h2>
+        <form id="owner-login" class="form">
+          <label>
+            Mot de passe
+            <input name="password" type="password" required />
+          </label>
+          <button class="btn" type="submit">Entrer</button>
+          <p id="owner-error" class="muted"></p>
+        </form>
+      </section>
+    </main>
+
+    <script src="/owner-login.js"></script>
+  </body>
+</html>
+

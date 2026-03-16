@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Roulette Avis - Inscription</title>
+    <link rel="stylesheet" href="/styles.css" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  </head>
+  <body class="page">
+    <main class="shell">
+      <header class="hero">
+        <span class="pill">MVP - Roulette Avis</span>
+        <h1>Transformez les avis Google en moments gagnants.</h1>
+        <p>
+          Une roue de la fortune liee aux avis clients. Vos clients la font tourner apres un avis, vous choisissez les cadeaux
+          et les chances.
+        </p>
+      </header>
+
+      <section class="card">
+        <h2>Inscrire mon etablissement</h2>
+        <form id="signup-form" class="form">
+          <label>
+            Nom d'enseigne
+            <input name="name" type="text" placeholder="Ex: Burger Loft" required />
+          </label>
+          <label>
+            Numero de TVA
+            <input name="vat" type="text" placeholder="BE0XXX.XXX.XXX" required />
+          </label>
+          <label>
+            Email de contact
+            <input name="email" type="email" placeholder="contact@restaurant.com" required />
+          </label>
+          <label>
+            Mot de passe
+            <input name="password" type="password" minlength="6" required />
+          </label>
+          <label>
+            Lien Google Review (optionnel pour le moment)
+            <input name="reviewUrl" type="url" placeholder="https://g.page/" />
+          </label>
+          <button class="btn" type="submit">Creer mon espace</button>
+          <p class="muted">L'API Google sera ajoutee des que vous ouvrirez un compte Google Cloud.</p>
+        </form>
+        <div class="divider"></div>
+        <div class="link-list">
+          <div>
+            <span>Deja un compte ?</span>
+            <a href="/login">Se connecter</a>
+          </div>
+        </div>
+      </section>
+
+      <section class="card hidden" id="signup-success">
+        <h2>Votre espace est pret</h2>
+        <p>Connectez-vous pour acceder a votre dashboard.</p>
+        <div class="link-list">
+          <div>
+            <span>Connexion</span>
+            <a id="login-link" href="/login">/login</a>
+          </div>
+          <div>
+            <span>Roulette client (QR)</span>
+            <a id="qr-link" href="#">--</a>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <script src="/signup.js"></script>
+  </body>
+</html>
+
