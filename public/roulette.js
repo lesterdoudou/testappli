@@ -2,7 +2,7 @@ const slug = window.location.pathname.split('/').pop();
 const titleEl = document.querySelector('#restaurant-title');
 const reviewLink = document.querySelector('#review-link');
 const reviewCheck = document.querySelector('#review-check');
-const spinBtn = document.querySelector('#spin-btn');
+const spinBtn = document.querySelector('#spin-btn');\nconst validationCodeInput = document.querySelector('#validation-code');
 const resultEl = document.querySelector('#spin-result');
 const canvas = document.querySelector('#wheel');
 const ctx = canvas.getContext('2d');
@@ -108,16 +108,14 @@ async function loadRoulette() {
   }
 
   const data = await response.json();
-  titleEl.textContent = data.restaurant.name;
+  titleEl.textContent = data.restaurant.name;\n  const subscriptionStatus = data.restaurant.subscriptionStatus || 'inactive';
   reviewLink.href = data.restaurant.reviewUrl || '#';
   reviewLink.classList.toggle('disabled', !data.restaurant.reviewUrl);
-  if (!data.restaurant.reviewUrl) {
-    reviewLink.textContent = 'Lien Google Review manquant';
-  }
+  if (!data.restaurant.reviewUrl) {\n    reviewLink.textContent = 'Lien Google Review manquant';\n  }\n  if (subscriptionStatus !== 'active') {\n    spinBtn.disabled = true;\n    resultEl.textContent = 'Abonnement requis pour jouer.';\n  }
 
   wheelPrizes = data.prizes.filter((p) => p.probability > 0);
   drawWheel(currentRotation);
-  spinBtn.disabled = !canSpinToday();
+  if (subscriptionStatus === 'active') {\n    spinBtn.disabled = !canSpinToday();\n  }
   if (!canSpinToday()) {
     resultEl.textContent = 'Vous avez déjà tourné aujourd\'hui.';
   }
@@ -142,15 +140,10 @@ spinBtn.addEventListener('click', async () => {
   const response = await fetch(`/api/spin/${slug}`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ reviewConfirmed: true })
+    body: JSON.stringify({ reviewConfirmed: true, code })
   });
 
-  if (!response.ok) {
-    resultEl.textContent = 'Erreur lors du tirage.';
-    spinBtn.disabled = false;
-    spinning = false;
-    return;
-  }
+  if (!response.ok) {\n    if (response.status === 403) {\n      resultEl.textContent = 'Code de validation invalide.';\n    } else {\n      resultEl.textContent = 'Erreur lors du tirage.';\n    }\n    spinBtn.disabled = false;\n    spinning = false;\n    return;\n  }
 
   const data = await response.json();
   const index = wheelPrizes.findIndex((p) => p.id === data.prizeId);
@@ -162,6 +155,9 @@ spinBtn.addEventListener('click', async () => {
 });
 
 loadRoulette();
+
+
+
 
 
 

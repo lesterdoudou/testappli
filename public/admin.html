@@ -17,6 +17,11 @@
         <p>Configurez vos cadeaux et surveillez les avis qui declenchent une roulette.</p>
       </header>
 
+      <section class="card hidden" id="subscription-banner">
+        <h2>Abonnement requis</h2>
+        <p class="muted">Votre abonnement est inactif. Activez-le pour acceder a la configuration de la roue.</p>
+      </section>
+
       <section class="grid">
         <div class="card">
           <h2>Votre lien QR</h2>
@@ -59,7 +64,20 @@
             </div>
           </div>
           <button id="subscribe-btn" class="btn" type="button">Activer l'abonnement</button>
+          <button id="manage-btn" class="btn ghost" type="button">Gerer mon abonnement</button>
           <p id="subscribe-status" class="muted"></p>
+        </div>
+
+        <div class="card">
+          <h2>Code de validation</h2>
+          <p class="muted">Le client doit entrer ce code avant de tourner la roue.</p>
+          <div class="link-list">
+            <div>
+              <span>Code actuel</span>
+              <strong id="validation-code">------</strong>
+            </div>
+          </div>
+          <button id="rotate-code" class="btn ghost" type="button">Generer un nouveau code</button>
         </div>
       </section>
 
@@ -84,6 +102,10 @@
       <section class="card">
         <h2>Dernieres notifications</h2>
         <div id="spin-list" class="stack"></div>
+      </section>
+
+      <section class="card">
+        <button id="logout-btn" class="btn ghost" type="button">Se deconnecter</button>
       </section>
     </main>
 

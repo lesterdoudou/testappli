@@ -1,0 +1,132 @@
+{
+  "restaurants": [
+    {
+      "id": "66600158-eb7c-4250-b9b7-fc1b26859763",
+      "name": "the moon",
+      "vat": "BE4157512121",
+      "email": "idrisovyassine@gmail.com",
+      "slug": "the-moon-obq6",
+      "token": "358dfaa437798299f521093eab884c1a",
+      "reviewUrl": "",
+      "subscriptionStatus": "inactive"
+    },
+    {
+      "id": "c9025e7d-022f-4809-b931-ba8f79ae433c",
+      "name": "ssvss",
+      "vat": "fsfdfvdfdv",
+      "email": "dvdvddvd@gmail.com",
+      "slug": "ssvss-fpy4",
+      "token": "8ce45f7113e4b79269b5e5559e7580c2",
+      "reviewUrl": ""
+    },
+    {
+      "id": "85d8501f-f1d3-4b59-acb5-a9267d7c8a2d",
+      "name": "burger loft",
+      "vat": "BE004454665",
+      "email": "contact@beeastar.fr",
+      "slug": "burger-loft-scww",
+      "token": "29cf8b174e8be8cf8faf538451b12b5f",
+      "reviewUrl": ""
+    },
+    {
+      "id": "e934f8ff-6a02-4b61-8b03-edc0f41f43c9",
+      "name": "vfg",
+      "vat": "BE4157512121",
+      "email": "dddd@beeastar.fr",
+      "slug": "vfg-67e2",
+      "token": "30be79892712cc078536c5515910e86a",
+      "reviewUrl": "",
+      "passwordSalt": "b7cdc773942aa0ea8b9631a7a95b9bcf",
+      "passwordHash": "db972e5be57fff055677e895100f134cd0e2a2d7b8eaec1b86eded02a128521c8e2360c520d23e4c925e8edd739242b9ecff4bca898733e9bb83b7b29d703a59",
+      "stripeCustomerId": "cus_U9vmXF3mCY4gXC"
+    }
+  ],
+  "prizes": [
+    {
+      "id": "646697a1-7af9-4e18-a850-62e1443128d5",
+      "restaurantId": "66600158-eb7c-4250-b9b7-fc1b26859763",
+      "label": "boisson",
+      "probability": 10
+    },
+    {
+      "id": "ba77bb9d-ca03-44ef-b2dd-bdc747d99d8f",
+      "restaurantId": "c9025e7d-022f-4809-b931-ba8f79ae433c",
+      "label": "hdhdh",
+      "probability": 25
+    },
+    {
+      "id": "eb8fae33-1712-4073-9f1b-91b573d16f32",
+      "restaurantId": "c9025e7d-022f-4809-b931-ba8f79ae433c",
+      "label": "fhfh",
+      "probability": 12
+    },
+    {
+      "id": "2bf9fc04-6030-448f-8752-ead6e2efbf49",
+      "restaurantId": "85d8501f-f1d3-4b59-acb5-a9267d7c8a2d",
+      "label": "boisson",
+      "probability": 14
+    },
+    {
+      "id": "7d9386e6-08d9-4739-a0a8-8161b995f62a",
+      "restaurantId": "85d8501f-f1d3-4b59-acb5-a9267d7c8a2d",
+      "label": "jus",
+      "probability": 25
+    },
+    {
+      "id": "d18be412-1e6c-462b-8505-721f5ef80a8d",
+      "restaurantId": "e934f8ff-6a02-4b61-8b03-edc0f41f43c9",
+      "label": "ffdfd",
+      "probability": 10
+    },
+    {
+      "id": "0b787083-7fef-4fcc-b59c-7831b7e748c7",
+      "restaurantId": "e934f8ff-6a02-4b61-8b03-edc0f41f43c9",
+      "label": "dsdfefe",
+      "probability": 45
+    },
+    {
+      "id": "46f0bb50-5a9c-4b12-b0e3-baaf2a5b7545",
+      "restaurantId": "e934f8ff-6a02-4b61-8b03-edc0f41f43c9",
+      "label": "retente",
+      "probability": 15
+    },
+    {
+      "id": "77a8c0b6-fcc8-478f-b35e-e8aca55dc51b",
+      "restaurantId": "e934f8ff-6a02-4b61-8b03-edc0f41f43c9",
+      "label": "ddsf",
+      "probability": 1
+    },
+    {
+      "id": "3d97d211-b4df-4f9d-ab52-3be979d4d10d",
+      "restaurantId": "e934f8ff-6a02-4b61-8b03-edc0f41f43c9",
+      "label": "1000€",
+      "probability": 41
+    }
+  ],
+  "spins": [
+    {
+      "id": "37410c88-5614-46b7-a84d-6c33d5fdb2d5",
+      "restaurantId": "66600158-eb7c-4250-b9b7-fc1b26859763",
+      "prizeId": null,
+      "prizeLabel": "Merci pour votre avis !",
+      "createdAt": 1773666270370,
+      "reviewConfirmed": true
+    },
+    {
+      "id": "8f5cee7e-ca02-4eb5-aa61-e749a4660b12",
+      "restaurantId": "85d8501f-f1d3-4b59-acb5-a9267d7c8a2d",
+      "prizeId": "7d9386e6-08d9-4739-a0a8-8161b995f62a",
+      "prizeLabel": "jus",
+      "createdAt": 1773667054556,
+      "reviewConfirmed": true
+    },
+    {
+      "id": "5fd1cb1f-de6f-4952-b0cc-a1fb65fcfcd8",
+      "restaurantId": "e934f8ff-6a02-4b61-8b03-edc0f41f43c9",
+      "prizeId": null,
+      "prizeLabel": "Merci pour votre avis !",
+      "createdAt": 1773667505570,
+      "reviewConfirmed": true
+    }
+  ]
+}

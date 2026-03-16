@@ -9,7 +9,12 @@ const spinList = document.querySelector('#spin-list');
 const restaurantForm = document.querySelector('#restaurant-form');
 const subscriptionStatusEl = document.querySelector('#subscription-status');
 const subscribeBtn = document.querySelector('#subscribe-btn');
+const manageBtn = document.querySelector('#manage-btn');
 const subscribeStatus = document.querySelector('#subscribe-status');
+const subscriptionBanner = document.querySelector('#subscription-banner');
+const logoutBtn = document.querySelector('#logout-btn');
+const validationCodeEl = document.querySelector('#validation-code');
+const rotateCodeBtn = document.querySelector('#rotate-code');
 
 let restaurantData = null;
 let isEditing = false;
@@ -80,6 +85,19 @@ function renderSubscription(status) {
   subscriptionStatusEl.classList.remove('active', 'inactive');
   subscriptionStatusEl.classList.add(normalized);
   subscribeBtn.disabled = normalized === 'active';
+  if (manageBtn) {
+    manageBtn.disabled = normalized !== 'active';
+  }
+  if (subscriptionBanner) {
+    subscriptionBanner.classList.toggle('hidden', normalized === 'active');
+  }
+  const disableControls = normalized !== 'active';
+  addPrizeBtn.disabled = disableControls;
+  savePrizesBtn.disabled = disableControls;
+  Array.from(restaurantForm.elements).forEach((el) => {
+    if (el.tagName === 'BUTTON') return;
+    el.disabled = disableControls;
+  });
 }
 
 async function loadAdmin() {
@@ -116,6 +134,9 @@ async function loadAdmin() {
   renderPrizes(data.prizes);
   renderSpins(data.spins);
   renderSubscription(data.restaurant.subscriptionStatus || 'inactive');
+  if (validationCodeEl) {
+    validationCodeEl.textContent = data.restaurant.validationCode || '------';
+  }
 }
 
 addPrizeBtn.addEventListener('click', () => {
@@ -141,7 +162,11 @@ savePrizesBtn.addEventListener('click', async () => {
   });
 
   if (!response.ok) {
-    saveStatus.textContent = 'Erreur lors de l\'enregistrement.';
+    if (response.status === 402) {
+      saveStatus.textContent = 'Abonnement inactif.';
+    } else {
+      saveStatus.textContent = 'Erreur lors de l\'enregistrement.';
+    }
     return;
   }
   saveStatus.textContent = 'Roue mise a jour.';
@@ -165,7 +190,11 @@ restaurantForm.addEventListener('submit', async (event) => {
   });
 
   if (!response.ok) {
-    alert('Impossible de mettre a jour.');
+    if (response.status === 402) {
+      alert('Abonnement inactif.');
+    } else {
+      alert('Impossible de mettre a jour.');
+    }
     return;
   }
 
@@ -182,6 +211,40 @@ if (subscribeBtn) {
     }
     const data = await response.json();
     window.location.href = data.url;
+  });
+}
+
+if (manageBtn) {
+  manageBtn.addEventListener('click', async () => {
+    subscribeStatus.textContent = 'Ouverture du portail Stripe...';
+    const response = await fetch('/api/billing/portal', { method: 'POST' });
+    if (!response.ok) {
+      subscribeStatus.textContent = 'Portail Stripe indisponible.';
+      return;
+    }
+    const data = await response.json();
+    window.location.href = data.url;
+  });
+}
+
+if (logoutBtn) {
+  logoutBtn.addEventListener('click', async () => {
+    await fetch('/api/logout', { method: 'POST' });
+    window.location.href = '/login';
+  });
+}
+
+if (rotateCodeBtn && validationCodeEl) {
+  rotateCodeBtn.addEventListener('click', async () => {
+    rotateCodeBtn.disabled = true;
+    const response = await fetch('/api/admin/validation-code/rotate', { method: 'POST' });
+    if (!response.ok) {
+      rotateCodeBtn.disabled = false;
+      return;
+    }
+    const data = await response.json();
+    validationCodeEl.textContent = data.code || '------';
+    rotateCodeBtn.disabled = false;
   });
 }
 

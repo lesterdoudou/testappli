@@ -58,6 +58,10 @@ function randomToken() {
   return crypto.randomBytes(16).toString('hex');
 }
 
+function generateValidationCode() {
+  return Math.floor(100000 + Math.random() * 900000).toString();
+}
+
 function hashPassword(password, salt = crypto.randomBytes(16).toString('hex')) {
   const hash = crypto.pbkdf2Sync(password, salt, 120000, 64, 'sha512').toString('hex');
   return { salt, hash };
@@ -103,6 +107,14 @@ function requireAuth(req, res, next) {
     return res.status(401).json({ error: 'Session invalide.' });
   }
   req.restaurant = restaurant;
+  next();
+}
+
+function requireActiveSubscription(req, res, next) {
+  const status = req.restaurant && req.restaurant.subscriptionStatus;
+  if (status !== 'active') {
+    return res.status(402).json({ error: 'Abonnement inactif.' });
+  }
   next();
 }
 
@@ -225,7 +237,8 @@ app.post('/api/signup', (req, res) => {
     passwordSalt: passwordInfo.salt,
     passwordHash: passwordInfo.hash,
     createdAt: Date.now(),
-    subscriptionStatus: 'inactive'
+    subscriptionStatus: 'inactive',
+    validationCode: generateValidationCode()
   };
 
   db.restaurants.push(restaurant);
@@ -301,6 +314,38 @@ app.post('/api/billing/checkout', requireAuth, async (req, res) => {
   res.json({ url: session.url });
 });
 
+app.post('/api/billing/portal', requireAuth, async (req, res) => {
+  if (!stripe || !STRIPE_SECRET_KEY) {
+    return res.status(400).json({ error: 'Stripe non configure.' });
+  }
+
+  const db = loadDb();
+  const restaurant = db.restaurants.find((r) => r.id === req.restaurant.id);
+  if (!restaurant) {
+    return res.status(404).json({ error: 'Restaurant introuvable.' });
+  }
+
+  let customerId = restaurant.stripeCustomerId;
+  if (!customerId) {
+    const customer = await stripe.customers.create({
+      email: restaurant.email,
+      name: restaurant.name,
+      metadata: { restaurantId: restaurant.id }
+    });
+    customerId = customer.id;
+    restaurant.stripeCustomerId = customerId;
+    saveDb(db);
+  }
+
+  const origin = req.headers.origin || `${req.protocol}://${req.get('host')}`;
+  const portal = await stripe.billingPortal.sessions.create({
+    customer: customerId,
+    return_url: `${origin}/admin?billing=portal`
+  });
+
+  res.json({ url: portal.url });
+});
+
 app.post('/api/owner/login', (req, res) => {
   const { password } = req.body || {};
   if (!password) {
@@ -352,16 +397,60 @@ app.post('/api/owner/subscription', requireOwner, (req, res) => {
 app.get('/api/admin/me', requireAuth, (req, res) => {
   const restaurant = req.restaurant;
   const db = loadDb();
+  if (!restaurant.validationCode) {
+    restaurant.validationCode = generateValidationCode();
+    const idx = db.restaurants.findIndex((r) => r.id === restaurant.id);
+    if (idx >= 0) {
+      db.restaurants[idx] = restaurant;
+      saveDb(db);
+    }
+  }
   const prizes = db.prizes.filter((p) => p.restaurantId === restaurant.id);
   const spins = db.spins
     .filter((s) => s.restaurantId === restaurant.id)
     .sort((a, b) => b.createdAt - a.createdAt)
     .slice(0, 50);
 
-  res.json({ restaurant, prizes, spins });
+  res.json({
+    restaurant: {
+      id: restaurant.id,
+      name: restaurant.name,
+      email: restaurant.email,
+      slug: restaurant.slug,
+      reviewUrl: restaurant.reviewUrl || '',
+      subscriptionStatus: restaurant.subscriptionStatus || 'inactive',
+      validationCode: restaurant.validationCode || ''
+    },
+    prizes,
+    spins
+  });
 });
 
-app.post('/api/admin/prizes', requireAuth, (req, res) => {
+app.get('/api/admin/validation-code', requireAuth, (req, res) => {
+  const db = loadDb();
+  const restaurant = db.restaurants.find((r) => r.id === req.restaurant.id);
+  if (!restaurant) {
+    return res.status(404).json({ error: 'Restaurant introuvable.' });
+  }
+  if (!restaurant.validationCode) {
+    restaurant.validationCode = generateValidationCode();
+    saveDb(db);
+  }
+  res.json({ code: restaurant.validationCode });
+});
+
+app.post('/api/admin/validation-code/rotate', requireAuth, (req, res) => {
+  const db = loadDb();
+  const restaurant = db.restaurants.find((r) => r.id === req.restaurant.id);
+  if (!restaurant) {
+    return res.status(404).json({ error: 'Restaurant introuvable.' });
+  }
+  restaurant.validationCode = generateValidationCode();
+  saveDb(db);
+  res.json({ code: restaurant.validationCode });
+});
+
+app.post('/api/admin/prizes', requireAuth, requireActiveSubscription, (req, res) => {
   const { prizes } = req.body || {};
   if (!Array.isArray(prizes)) {
     return res.status(400).json({ error: 'Format de liste invalide.' });
@@ -386,7 +475,7 @@ app.post('/api/admin/prizes', requireAuth, (req, res) => {
   res.json({ ok: true });
 });
 
-app.post('/api/admin/restaurant', requireAuth, (req, res) => {
+app.post('/api/admin/restaurant', requireAuth, requireActiveSubscription, (req, res) => {
   const { name, email, reviewUrl } = req.body || {};
 
   const db = loadDb();
@@ -417,7 +506,8 @@ app.get('/api/restaurant/:slug', (req, res) => {
   res.json({
     restaurant: {
       name: restaurant.name,
-      reviewUrl: restaurant.reviewUrl || ''
+      reviewUrl: restaurant.reviewUrl || '',
+      subscriptionStatus: restaurant.subscriptionStatus || 'inactive'
     },
     prizes
   });
@@ -429,6 +519,11 @@ app.post('/api/spin/:slug', (req, res) => {
   const restaurant = db.restaurants.find((r) => r.slug === slug);
   if (!restaurant) {
     return res.status(404).json({ error: 'Restaurant introuvable.' });
+  }
+  const providedCode = String((req.body || {}).code || '').trim();
+  const validCode = restaurant.validationCode || '';
+  if (!validCode || providedCode !== validCode) {
+    return res.status(403).json({ error: 'Code de validation invalide.' });
   }
 
   const prizes = db.prizes.filter((p) => p.restaurantId === restaurant.id && p.probability > 0);
