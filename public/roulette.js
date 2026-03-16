@@ -2,7 +2,8 @@ const slug = window.location.pathname.split('/').pop();
 const titleEl = document.querySelector('#restaurant-title');
 const reviewLink = document.querySelector('#review-link');
 const reviewCheck = document.querySelector('#review-check');
-const spinBtn = document.querySelector('#spin-btn');\nconst validationCodeInput = document.querySelector('#validation-code');
+const validationCodeInput = document.querySelector('#validation-code');
+const spinBtn = document.querySelector('#spin-btn');
 const resultEl = document.querySelector('#spin-result');
 const canvas = document.querySelector('#wheel');
 const ctx = canvas.getContext('2d');
@@ -25,8 +26,9 @@ function drawWheel(rotation = 0) {
     ctx.fill();
 
     ctx.fillStyle = '#0e0f19';
-    ctx.font = '16px "Space Grotesk", sans-serif';
+    ctx.font = '16px "Sora", sans-serif';
     ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
     ctx.fillText('Aucun cadeau', radius, radius);
     return;
   }
@@ -49,7 +51,7 @@ function drawWheel(rotation = 0) {
     ctx.textBaseline = 'middle';
     ctx.fillStyle = '#0e0f19';
     const fontSize = Math.max(16, Math.min(22, radius * 0.13));
-    ctx.font = `600 ${fontSize}px "Space Grotesk", sans-serif`
+    ctx.font = `600 ${fontSize}px "Sora", sans-serif`;
     const textRadius = radius * 0.62;
     ctx.fillText(prize.label, textRadius, 0);
     ctx.restore();
@@ -108,28 +110,46 @@ async function loadRoulette() {
   }
 
   const data = await response.json();
-  titleEl.textContent = data.restaurant.name;\n  const subscriptionStatus = data.restaurant.subscriptionStatus || 'inactive';
+  const subscriptionStatus = data.restaurant.subscriptionStatus || 'inactive';
+
+  titleEl.textContent = data.restaurant.name;
   reviewLink.href = data.restaurant.reviewUrl || '#';
   reviewLink.classList.toggle('disabled', !data.restaurant.reviewUrl);
-  if (!data.restaurant.reviewUrl) {\n    reviewLink.textContent = 'Lien Google Review manquant';\n  }\n  if (subscriptionStatus !== 'active') {\n    spinBtn.disabled = true;\n    resultEl.textContent = 'Abonnement requis pour jouer.';\n  }
+  if (!data.restaurant.reviewUrl) {
+    reviewLink.textContent = 'Lien Google Review manquant';
+  }
+
+  if (subscriptionStatus !== 'active') {
+    spinBtn.disabled = true;
+    resultEl.textContent = 'Abonnement requis pour jouer.';
+  }
 
   wheelPrizes = data.prizes.filter((p) => p.probability > 0);
   drawWheel(currentRotation);
-  if (subscriptionStatus === 'active') {\n    spinBtn.disabled = !canSpinToday();\n  }
+
+  if (subscriptionStatus === 'active') {
+    spinBtn.disabled = !canSpinToday();
+  }
   if (!canSpinToday()) {
-    resultEl.textContent = 'Vous avez déjà tourné aujourd\'hui.';
+    resultEl.textContent = 'Vous avez deja tourne aujourd\'hui.';
   }
 }
 
 spinBtn.addEventListener('click', async () => {
   if (spinning) return;
   if (!reviewCheck.checked) {
-    alert('Merci de confirmer que vous avez laissé un avis.');
+    alert('Merci de confirmer que vous avez laisse un avis.');
     return;
   }
 
   if (!canSpinToday()) {
-    resultEl.textContent = 'Vous avez déjà tourné aujourd\'hui.';
+    resultEl.textContent = 'Vous avez deja tourne aujourd\'hui.';
+    return;
+  }
+
+  const code = (validationCodeInput && validationCodeInput.value || '').trim();
+  if (!code) {
+    alert('Merci de saisir le code de validation.');
     return;
   }
 
@@ -143,7 +163,16 @@ spinBtn.addEventListener('click', async () => {
     body: JSON.stringify({ reviewConfirmed: true, code })
   });
 
-  if (!response.ok) {\n    if (response.status === 403) {\n      resultEl.textContent = 'Code de validation invalide.';\n    } else {\n      resultEl.textContent = 'Erreur lors du tirage.';\n    }\n    spinBtn.disabled = false;\n    spinning = false;\n    return;\n  }
+  if (!response.ok) {
+    if (response.status === 403) {
+      resultEl.textContent = 'Code de validation invalide.';
+    } else {
+      resultEl.textContent = 'Erreur lors du tirage.';
+    }
+    spinBtn.disabled = false;
+    spinning = false;
+    return;
+  }
 
   const data = await response.json();
   const index = wheelPrizes.findIndex((p) => p.id === data.prizeId);
@@ -155,9 +184,3 @@ spinBtn.addEventListener('click', async () => {
 });
 
 loadRoulette();
-
-
-
-
-
-
