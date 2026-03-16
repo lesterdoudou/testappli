@@ -748,17 +748,19 @@ app.post('/api/admin/restaurant', async (req, res) => {
     return res.status(402).json({ error: 'Abonnement inactif.' });
   }
 
-  const { name, email, reviewUrl, themeId } = req.body || {};
+  const { name, email, reviewUrl, themeId, logoDataUrl } = req.body || {};
   if (name) restaurant.name = String(name).trim();
   if (email) restaurant.email = String(email).trim();
   if (reviewUrl !== undefined) restaurant.reviewUrl = String(reviewUrl).trim();
   if (themeId) restaurant.themeId = String(themeId).trim();
+  if (logoDataUrl !== undefined) restaurant.logoUrl = String(logoDataUrl).trim();
 
   await dbUpdateRestaurant(restaurant.id, {
     name: restaurant.name,
     email: restaurant.email,
     review_url: restaurant.reviewUrl,
-    theme_id: restaurant.themeId
+    theme_id: restaurant.themeId,
+    logo_url: restaurant.logoUrl || ''
   });
 
   res.json({ ok: true });

@@ -221,7 +221,25 @@ restaurantForm.addEventListener('submit', async (event) => {
     reviewUrl: restaurantForm.elements.reviewUrl.value,
     themeId: themeSelect ? themeSelect.value : 'neon'
   };
+  const logoFile = restaurantForm.elements.logo && restaurantForm.elements.logo.files[0];
+  if (logoFile) {
+    if (logoFile.size > 600 * 1024) {
+      alert('Logo trop lourd (max 600 KB).');
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = async () => {
+      payload.logoDataUrl = reader.result;
+      await submitRestaurantUpdate(payload);
+    };
+    reader.readAsDataURL(logoFile);
+    return;
+  }
 
+  await submitRestaurantUpdate(payload);
+});
+
+async function submitRestaurantUpdate(payload) {
   const response = await fetch('/api/admin/restaurant', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -238,7 +256,7 @@ restaurantForm.addEventListener('submit', async (event) => {
   }
 
   loadAdmin();
-});
+}
 
 if (subscribeBtn) {
   subscribeBtn.addEventListener('click', async () => {
