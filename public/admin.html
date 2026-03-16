@@ -107,13 +107,13 @@
           </div>
           <div id="prize-rows"></div>
         </div>
-        <div class="table-row">
-          <label class="checkbox">
-            <input id="retry-enabled" type="checkbox" />
-            Activer "Retente ta chance"
-          </label>
+        <div class="table-row retry-row">
+          <div class="toggle">
+            <button id="retry-on" type="button">Active</button>
+            <button id="retry-off" type="button">Desactive</button>
+          </div>
           <input id="retry-probability" type="number" min="0" step="1" value="0" />
-          <span></span>
+          <span class="muted">Retente ta chance</span>
         </div>
         <button id="save-prizes" class="btn" type="button">Enregistrer la roue</button>
         <p id="save-status" class="muted"></p>

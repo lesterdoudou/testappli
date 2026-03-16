@@ -15,6 +15,11 @@ let spinning = false;
 const palette = ['#ffb703', '#fb8500', '#219ebc', '#8ecae6', '#ff006e', '#8338ec'];
 const SPIN_DURATION = 2600;
 
+function applyTheme(themeId) {
+  document.body.classList.remove('theme-neon', 'theme-sunset', 'theme-mint', 'theme-noir');
+  document.body.classList.add(`theme-${themeId}`);
+}
+
 function drawWheel(rotation = 0) {
   const { width, height } = canvas;
   const radius = width / 2;
@@ -109,8 +114,10 @@ async function loadRoulette() {
     return;
   }
 
-  const data = await response.json();\n  const themeId = data.restaurant.themeId || 'neon';\n  document.body.classList.remove('theme-neon','theme-sunset','theme-mint','theme-noir');\n  document.body.classList.add(	heme-);
+  const data = await response.json();
   const subscriptionStatus = data.restaurant.subscriptionStatus || 'inactive';
+  const themeId = data.restaurant.themeId || 'neon';
+  applyTheme(themeId);
 
   titleEl.textContent = data.restaurant.name;
   reviewLink.href = data.restaurant.reviewUrl || '#';
@@ -174,7 +181,7 @@ spinBtn.addEventListener('click', async () => {
     return;
   }
 
-  const data = await response.json();\n  const themeId = data.restaurant.themeId || 'neon';\n  document.body.classList.remove('theme-neon','theme-sunset','theme-mint','theme-noir');\n  document.body.classList.add(	heme-);
+  const data = await response.json();
   const index = wheelPrizes.findIndex((p) => p.id === data.prizeId);
   const targetIndex = index >= 0 ? index : Math.floor(Math.random() * Math.max(1, wheelPrizes.length));
 
@@ -192,4 +199,3 @@ spinBtn.addEventListener('click', async () => {
 });
 
 loadRoulette();
-

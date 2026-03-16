@@ -16,7 +16,8 @@ const subscriptionBanner = document.querySelector('#subscription-banner');
 const logoutBtn = document.querySelector('#logout-btn');
 const validationCodeEl = document.querySelector('#validation-code');
 const rotateCodeBtn = document.querySelector('#rotate-code');
-const retryEnabled = document.querySelector('#retry-enabled');
+const retryOn = document.querySelector('#retry-on');
+const retryOff = document.querySelector('#retry-off');
 const retryProbability = document.querySelector('#retry-probability');
 
 let restaurantData = null;
@@ -83,6 +84,14 @@ function renderPrizes(prizes) {
     .forEach((prize) => prizeRows.appendChild(createPrizeRow(prize)));
 }
 
+function setRetryActive(isActive) {
+  if (!retryOn || !retryOff || !retryProbability) return;
+  retryOn.classList.toggle('active', isActive);
+  retryOff.classList.toggle('active', !isActive);
+  retryProbability.disabled = !isActive;
+  retryProbability.value = isActive ? retryProbability.value : 0;
+}
+
 function renderSubscription(status) {
   if (!subscriptionStatusEl || !subscribeBtn) return;
   const normalized = status === 'active' ? 'active' : 'inactive';
@@ -145,10 +154,10 @@ async function loadAdmin() {
   if (validationCodeEl) {
     validationCodeEl.textContent = data.restaurant.validationCode || '------';
   }
-  if (retryEnabled && retryProbability) {
+  if (retryOn && retryOff && retryProbability) {
     const retryPrize = (data.prizes || []).find((p) => p.isRetry);
-    retryEnabled.checked = Boolean(retryPrize);
     retryProbability.value = retryPrize ? Number(retryPrize.probability || 0) : 0;
+    setRetryActive(Boolean(retryPrize));
   }
 }
 
@@ -166,7 +175,7 @@ savePrizesBtn.addEventListener('click', async () => {
       probability: inputs[1].value
     };
   });
-  if (retryEnabled && retryProbability && retryEnabled.checked) {
+  if (retryOn && retryOff && retryProbability && retryOn.classList.contains('active')) {
     prizes.push({
       label: 'Retente ta chance',
       probability: retryProbability.value,
@@ -267,6 +276,11 @@ if (rotateCodeBtn && validationCodeEl) {
     validationCodeEl.textContent = data.code || '------';
     rotateCodeBtn.disabled = false;
   });
+}
+
+if (retryOn && retryOff) {
+  retryOn.addEventListener('click', () => setRetryActive(true));
+  retryOff.addEventListener('click', () => setRetryActive(false));
 }
 
 const params = new URLSearchParams(window.location.search);

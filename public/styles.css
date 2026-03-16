@@ -353,6 +353,35 @@ textarea {
   grid-template-columns: 1.2fr 1.5fr 1fr 0.8fr 0.8fr auto;
 }
 
+.retry-row {
+  grid-template-columns: auto 140px 1fr;
+  align-items: center;
+}
+
+.toggle {
+  display: inline-flex;
+  gap: 8px;
+  background: #ffffff;
+  border: 1px solid var(--border);
+  padding: 6px;
+  border-radius: 999px;
+}
+
+.toggle button {
+  border: none;
+  padding: 8px 14px;
+  border-radius: 999px;
+  background: transparent;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.toggle button.active {
+  background: linear-gradient(120deg, var(--accent), var(--accent-2), var(--accent-3));
+  color: #0b0f19;
+  box-shadow: 0 8px 18px rgba(0, 224, 255, 0.25);
+}
+
 .owner-actions {
   display: flex;
   gap: 10px;
