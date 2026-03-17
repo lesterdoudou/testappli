@@ -17,7 +17,7 @@ let pollTimer = null;
 let reviewConfirmed = false;
 
 const palette = ['#ffb703', '#fb8500', '#219ebc', '#8ecae6', '#ff006e', '#8338ec'];
-const SPIN_DURATION = 3000;
+const SPIN_DURATION = 7000;
 
 function applyTheme(themeId) {
   document.body.classList.remove('theme-neon', 'theme-sunset', 'theme-mint', 'theme-noir');
@@ -28,6 +28,23 @@ function setReviewState(isConfirmed) {
   reviewConfirmed = isConfirmed;
   if (reviewYes) reviewYes.classList.toggle('active', isConfirmed);
   if (reviewNo) reviewNo.classList.toggle('active', !isConfirmed);
+}
+
+function wrapLabel(text, maxWidth) {
+  const words = String(text || '').split(' ');
+  const lines = [];
+  let line = '';
+  words.forEach((word) => {
+    const test = line ? `${line} ${word}` : word;
+    if (ctx.measureText(test).width <= maxWidth) {
+      line = test;
+    } else {
+      if (line) lines.push(line);
+      line = word;
+    }
+  });
+  if (line) lines.push(line);
+  return lines.slice(0, 2);
 }
 
 function drawWheel(rotation = 0) {
@@ -50,6 +67,7 @@ function drawWheel(rotation = 0) {
   }
 
   const angleStep = (Math.PI * 2) / wheelPrizes.length;
+  const densityFactor = Math.max(0.55, Math.min(1, 8 / wheelPrizes.length));
 
   wheelPrizes.forEach((prize, index) => {
     const start = rotation + index * angleStep;
@@ -66,10 +84,21 @@ function drawWheel(rotation = 0) {
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
     ctx.fillStyle = '#0e0f19';
-    const fontSize = Math.max(18, Math.min(26, radius * 0.15));
-    ctx.font = `700 ${fontSize}px "Bebas Neue", sans-serif`;
+
+    const baseSize = Math.max(12, Math.min(22, radius * 0.13));
+    const fontSize = Math.floor(baseSize * densityFactor);
+    ctx.font = `700 ${fontSize}px "Sora", sans-serif`;
+
     const textRadius = radius * 0.62;
-    ctx.fillText(prize.label.toUpperCase(), textRadius, 0);
+    const maxWidth = radius * 0.55;
+    const lines = wrapLabel(prize.label, maxWidth);
+    const lineHeight = fontSize + 2;
+    const startY = lines.length === 1 ? 0 : -lineHeight / 2;
+
+    lines.forEach((line, i) => {
+      ctx.fillText(line, textRadius, startY + i * lineHeight);
+    });
+
     ctx.restore();
   });
 }
