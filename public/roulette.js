@@ -1,7 +1,8 @@
 const slug = window.location.pathname.split('/').pop();
 const titleEl = document.querySelector('#restaurant-title');
 const reviewLink = document.querySelector('#review-link');
-const reviewCheck = document.querySelector('#review-check');
+const reviewYes = document.querySelector('#review-yes');
+const reviewNo = document.querySelector('#review-no');
 const customerNameInput = document.querySelector('#customer-name');
 const spinBtn = document.querySelector('#spin-btn');
 const resultEl = document.querySelector('#spin-result');
@@ -13,13 +14,20 @@ let currentRotation = 0;
 let spinning = false;
 let claimId = null;
 let pollTimer = null;
+let reviewConfirmed = false;
 
 const palette = ['#ffb703', '#fb8500', '#219ebc', '#8ecae6', '#ff006e', '#8338ec'];
-const SPIN_DURATION = 2600;
+const SPIN_DURATION = 3000;
 
 function applyTheme(themeId) {
   document.body.classList.remove('theme-neon', 'theme-sunset', 'theme-mint', 'theme-noir');
   document.body.classList.add(`theme-${themeId}`);
+}
+
+function setReviewState(isConfirmed) {
+  reviewConfirmed = isConfirmed;
+  if (reviewYes) reviewYes.classList.toggle('active', isConfirmed);
+  if (reviewNo) reviewNo.classList.toggle('active', !isConfirmed);
 }
 
 function drawWheel(rotation = 0) {
@@ -58,30 +66,32 @@ function drawWheel(rotation = 0) {
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
     ctx.fillStyle = '#0e0f19';
-    const fontSize = Math.max(16, Math.min(22, radius * 0.13));
-    ctx.font = `600 ${fontSize}px "Sora", sans-serif`;
+    const fontSize = Math.max(18, Math.min(26, radius * 0.15));
+    ctx.font = `700 ${fontSize}px "Bebas Neue", sans-serif`;
     const textRadius = radius * 0.62;
-    ctx.fillText(prize.label, textRadius, 0);
+    ctx.fillText(prize.label.toUpperCase(), textRadius, 0);
     ctx.restore();
   });
 }
 
-function easeOutCubic(t) {
-  return 1 - Math.pow(1 - t, 3);
+function easeOutBack(t) {
+  const c1 = 1.70158;
+  const c3 = c1 + 1;
+  return 1 + c3 * Math.pow(t - 1, 3) + c1 * Math.pow(t - 1, 2);
 }
 
 function spinToIndex(index) {
   if (!wheelPrizes.length) return;
   const angleStep = (Math.PI * 2) / wheelPrizes.length;
   const targetAngle = Math.PI * 1.5 - (index + 0.5) * angleStep;
-  const spins = 5 * Math.PI * 2;
+  const spins = 6 * Math.PI * 2;
   const start = currentRotation;
   const end = targetAngle + spins;
   const startTime = performance.now();
 
   function animate(now) {
     const progress = Math.min((now - startTime) / SPIN_DURATION, 1);
-    const eased = easeOutCubic(progress);
+    const eased = easeOutBack(progress);
     currentRotation = start + (end - start) * eased;
     drawWheel(currentRotation);
     if (progress < 1) {
@@ -182,7 +192,7 @@ async function pollClaim() {
 
 spinBtn.addEventListener('click', async () => {
   if (spinning) return;
-  if (!reviewCheck.checked) {
+  if (!reviewConfirmed) {
     alert('Merci de confirmer que vous avez laisse un avis.');
     return;
   }
@@ -220,5 +230,11 @@ spinBtn.addEventListener('click', async () => {
   if (pollTimer) clearInterval(pollTimer);
   pollTimer = setInterval(pollClaim, 3000);
 });
+
+if (reviewYes && reviewNo) {
+  reviewYes.addEventListener('click', () => setReviewState(true));
+  reviewNo.addEventListener('click', () => setReviewState(false));
+  setReviewState(false);
+}
 
 loadRoulette();
