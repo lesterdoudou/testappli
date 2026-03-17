@@ -25,8 +25,8 @@ let restaurantData = null;
 let isEditing = false;
 
 function formatDate(ts) {
-  const date = new Date(ts);
-  return date.toLocaleString('fr-FR');
+  if (!ts) return '--';
+  return new Date(ts).toLocaleString('fr-FR');
 }
 
 function markEditing() {
@@ -60,17 +60,20 @@ function createPrizeRow(prize = {}) {
   const row = document.createElement('div');
   row.className = 'table-row';
   row.innerHTML = `
-    <input type="text" placeholder="Ex: Boisson offerte" value="${prize.label || ''}" />
-    <input type="number" min="0" step="1" value="${Number(prize.probability || 0)}" />
-    <button type="button" class="link danger">Supprimer</button>
+    <input type="text" placeholder="Ex: Cadeau surprise" value="${prize.label || ''}" />
+    <input type="number" min="0" step="1" value="${prize.probability || 0}" />
+    <button class="link danger" type="button">Supprimer</button>
   `;
+
+  row.querySelectorAll('input').forEach((input) => {
+    input.addEventListener('input', markEditing);
+  });
+
   row.querySelector('button').addEventListener('click', () => {
     row.remove();
     markEditing();
   });
-  row.querySelectorAll('input').forEach((input) => {
-    input.addEventListener('input', markEditing);
-  });
+
   return row;
 }
 
@@ -125,9 +128,14 @@ function renderSubscription(status) {
   if (subscriptionBanner) {
     subscriptionBanner.classList.toggle('hidden', normalized === 'active');
   }
+
   const disableControls = normalized !== 'active';
   addPrizeBtn.disabled = disableControls;
   savePrizesBtn.disabled = disableControls;
+  if (retryOn) retryOn.disabled = disableControls;
+  if (retryOff) retryOff.disabled = disableControls;
+  if (retryProbability) retryProbability.disabled = disableControls;
+
   Array.from(restaurantForm.elements).forEach((el) => {
     if (el.tagName === 'BUTTON') return;
     el.disabled = disableControls;
@@ -135,18 +143,18 @@ function renderSubscription(status) {
 }
 
 async function loadAdmin() {
-  if (isEditing) {
-    return;
-  }
+  if (isEditing) return;
   const response = await fetch('/api/admin/me');
   if (!response.ok) {
+    if (response.status === 401) {
+      window.location.href = '/login';
+      return;
+    }
     nameEl.textContent = 'Acces invalide.';
     return;
   }
-
   const data = await response.json();
   restaurantData = data.restaurant;
-
   nameEl.textContent = data.restaurant.name;
   restaurantForm.elements.name.value = data.restaurant.name;
   restaurantForm.elements.email.value = data.restaurant.email;
@@ -164,32 +172,45 @@ async function loadAdmin() {
   }
 
   const qrUrl = `${window.location.origin}/r/${data.restaurant.slug}`;
-  qrLink.href = qrUrl;
-  qrLink.textContent = qrUrl;
-
-  qrEl.innerHTML = '';
-  new QRCode(qrEl, {
-    text: qrUrl,
-    width: 180,
-    height: 180,
-    colorDark: '#0e0f19',
-    colorLight: '#ffffff'
-  });
-
-  renderPrizes(data.prizes);
-  renderSpins(data.spins);
-  renderSubscription(data.restaurant.subscriptionStatus || 'inactive');
-  if (retryOn && retryOff && retryProbability) {
-    const retryPrize = (data.prizes || []).find((p) => p.isRetry);
-    retryProbability.value = retryPrize ? Number(retryPrize.probability || 0) : 0;
-    setRetryActive(Boolean(retryPrize));
+  if (qrLink) {
+    qrLink.href = qrUrl;
+    qrLink.textContent = qrUrl;
   }
+  if (qrEl) {
+    qrEl.innerHTML = '';
+    // eslint-disable-next-line no-undef
+    new QRCode(qrEl, {
+      text: qrUrl,
+      width: 180,
+      height: 180,
+      colorDark: '#0b0f19',
+      colorLight: '#ffffff',
+      correctLevel: QRCode.CorrectLevel.H
+    });
+  }
+
+  renderSubscription(data.restaurant.subscriptionStatus || 'inactive');
+  renderPrizes(data.prizes || []);
+  renderSpins(data.spins || []);
+
+  const retryPrize = (data.prizes || []).find((p) => p.isRetry);
+  if (retryPrize && retryPrize.probability > 0) {
+    if (retryProbability) retryProbability.value = retryPrize.probability;
+    setRetryActive(true);
+  } else {
+    if (retryProbability) retryProbability.value = 0;
+    setRetryActive(false);
+  }
+
+  isEditing = false;
 }
 
-addPrizeBtn.addEventListener('click', () => {
-  prizeRows.appendChild(createPrizeRow({ label: '', probability: 0 }));
-  markEditing();
-});
+if (addPrizeBtn) {
+  addPrizeBtn.addEventListener('click', () => {
+    prizeRows.appendChild(createPrizeRow({ label: '', probability: 0 }));
+    markEditing();
+  });
+}
 
 if (suggestPrizesBtn) {
   suggestPrizesBtn.addEventListener('click', () => {
@@ -197,69 +218,75 @@ if (suggestPrizesBtn) {
   });
 }
 
-savePrizesBtn.addEventListener('click', async () => {
-  const rows = Array.from(prizeRows.querySelectorAll('.table-row'));
-  const prizes = rows.map((row) => {
-    const inputs = row.querySelectorAll('input');
-    return {
-      label: inputs[0].value,
-      probability: inputs[1].value
-    };
-  });
-  if (retryOn && retryOff && retryProbability && retryOn.classList.contains('active')) {
-    prizes.push({
-      label: 'Retente ta chance',
-      probability: retryProbability.value,
-      isRetry: true
+if (savePrizesBtn) {
+  savePrizesBtn.addEventListener('click', async () => {
+    if (!restaurantData) return;
+    const rows = Array.from(prizeRows.querySelectorAll('.table-row'));
+    const prizes = rows.map((row) => {
+      const inputs = row.querySelectorAll('input');
+      return {
+        label: inputs[0].value,
+        probability: inputs[1].value
+      };
     });
-  }
 
-  saveStatus.textContent = 'Enregistrement...';
-  const response = await fetch('/api/admin/prizes', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ prizes })
-  });
-
-  if (!response.ok) {
-    if (response.status === 402) {
-      saveStatus.textContent = 'Abonnement inactif.';
-    } else {
-      saveStatus.textContent = 'Erreur lors de l\'enregistrement.';
+    if (retryOn && retryOff && retryProbability && retryOn.classList.contains('active')) {
+      prizes.push({
+        label: 'Retente ta chance',
+        probability: retryProbability.value,
+        isRetry: true
+      });
     }
-    return;
-  }
-  saveStatus.textContent = 'Roue mise a jour.';
-  setTimeout(() => (saveStatus.textContent = ''), 2000);
-  isEditing = false;
-  loadAdmin();
-});
 
-restaurantForm.addEventListener('submit', async (event) => {
-  event.preventDefault();
-  const payload = {
-    name: restaurantForm.elements.name.value,
-    email: restaurantForm.elements.email.value,
-    reviewUrl: restaurantForm.elements.reviewUrl.value,
-    themeId: themeSelect ? themeSelect.value : 'neon'
-  };
-  const logoFile = restaurantForm.elements.logo && restaurantForm.elements.logo.files[0];
-  if (logoFile) {
-    if (logoFile.size > 600 * 1024) {
-      alert('Logo trop lourd (max 600 KB).');
+    saveStatus.textContent = 'Enregistrement...';
+    const response = await fetch('/api/admin/prizes', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ prizes })
+    });
+
+    if (!response.ok) {
+      if (response.status === 402) {
+        saveStatus.textContent = 'Abonnement inactif.';
+      } else {
+        saveStatus.textContent = 'Erreur lors de l\'enregistrement.';
+      }
       return;
     }
-    const reader = new FileReader();
-    reader.onload = async () => {
-      payload.logoDataUrl = reader.result;
-      await submitRestaurantUpdate(payload);
-    };
-    reader.readAsDataURL(logoFile);
-    return;
-  }
+    saveStatus.textContent = 'Roue mise a jour.';
+    setTimeout(() => (saveStatus.textContent = ''), 2000);
+    isEditing = false;
+    loadAdmin();
+  });
+}
 
-  await submitRestaurantUpdate(payload);
-});
+if (restaurantForm) {
+  restaurantForm.addEventListener('submit', async (event) => {
+    event.preventDefault();
+    const payload = {
+      name: restaurantForm.elements.name.value,
+      email: restaurantForm.elements.email.value,
+      reviewUrl: restaurantForm.elements.reviewUrl.value,
+      themeId: themeSelect ? themeSelect.value : 'neon'
+    };
+    const logoFile = restaurantForm.elements.logo && restaurantForm.elements.logo.files[0];
+    if (logoFile) {
+      if (logoFile.size > 600 * 1024) {
+        alert('Logo trop lourd (max 600 KB).');
+        return;
+      }
+      const reader = new FileReader();
+      reader.onload = async () => {
+        payload.logoDataUrl = reader.result;
+        await submitRestaurantUpdate(payload);
+      };
+      reader.readAsDataURL(logoFile);
+      return;
+    }
+
+    await submitRestaurantUpdate(payload);
+  });
+}
 
 async function submitRestaurantUpdate(payload) {
   const response = await fetch('/api/admin/restaurant', {
@@ -334,15 +361,28 @@ async function loadPending() {
     row.className = 'spin-item';
     row.innerHTML = `
       <div>
-        <strong>${item.customerName || 'Client'} Â· ${item.prizeLabel}</strong>
+        <strong>${item.customerName || 'Client'} · ${item.prizeLabel}</strong>
         <span>${new Date(item.createdAt).toLocaleString('fr-FR')}</span>
       </div>
-      <button class="btn ghost" data-id="${item.id}">Valider</button>
+      <div class="pending-actions">
+        <button class="btn ghost" data-action="approve" data-id="${item.id}">Valider</button>
+        <button class="btn ghost danger" data-action="delete" data-id="${item.id}">Supprimer</button>
+      </div>
     `;
-    row.querySelector('button').addEventListener('click', async () => {
-      await fetch(`/api/admin/approve/${item.id}`, { method: 'POST' });
-      loadPending();
-      loadAdmin();
+    row.querySelectorAll('button').forEach((btn) => {
+      btn.addEventListener('click', async () => {
+        const action = btn.getAttribute('data-action');
+        if (action === 'approve') {
+          await fetch(`/api/admin/approve/${item.id}`, { method: 'POST' });
+        }
+        if (action === 'delete') {
+          const ok = confirm('Supprimer cette demande ?');
+          if (!ok) return;
+          await fetch(`/api/admin/pending/${item.id}`, { method: 'DELETE' });
+        }
+        loadPending();
+        loadAdmin();
+      });
     });
     pendingList.appendChild(row);
   });
@@ -370,4 +410,3 @@ setInterval(loadAdmin, 10000);
 setInterval(loadPending, 5000);
 loadAdmin();
 loadPending();
-

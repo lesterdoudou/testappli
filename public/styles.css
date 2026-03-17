@@ -187,6 +187,11 @@ textarea {
   box-shadow: none;
 }
 
+.btn.ghost.danger {
+  border-color: rgba(193, 18, 31, 0.5);
+  color: #c1121f;
+}
+
 .link {
   background: none;
   border: none;
@@ -270,6 +275,12 @@ textarea {
   padding: 12px 16px;
   border-radius: 14px;
   border: 1px solid var(--border);
+}
+
+.pending-actions {
+  display: inline-flex;
+  gap: 10px;
+  flex-wrap: wrap;
 }
 
 .spin-item strong {

@@ -362,6 +362,14 @@ async function dbApproveSpin(id) {
   }
 }
 
+async function dbDeleteSpin(spinId) {
+  if (supabase) {
+    await supabase.from('spins').delete().eq('id', spinId);
+    return;
+  }
+  db.spins = db.spins.filter((s) => s.id !== spinId);
+}
+
 async function dbDeleteRestaurant(restaurantId) {
   if (USE_SUPABASE) {
     await supabase.from('prizes').delete().eq('restaurant_id', restaurantId);
@@ -802,6 +810,24 @@ app.post('/api/admin/approve/:id', async (req, res) => {
     return res.status(404).json({ error: 'Demande introuvable.' });
   }
   await dbApproveSpin(spin.id);
+  res.json({ ok: true });
+});
+
+app.delete('/api/admin/pending/:id', async (req, res) => {
+  const cookies = parseCookies(req);
+  const token = cookies[SESSION_COOKIE];
+  if (!token) {
+    return res.status(401).json({ error: 'Non authentifie.' });
+  }
+  const restaurant = await dbGetRestaurantByToken(token);
+  if (!restaurant) {
+    return res.status(404).json({ error: 'Restaurant introuvable.' });
+  }
+  const spin = await dbGetSpinById(req.params.id);
+  if (!spin || spin.restaurantId !== restaurant.id) {
+    return res.status(404).json({ error: 'Demande introuvable.' });
+  }
+  await dbDeleteSpin(spin.id);
   res.json({ ok: true });
 });
 
