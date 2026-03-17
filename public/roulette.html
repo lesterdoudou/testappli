@@ -24,31 +24,31 @@
         <div class="card">
           <h2>Etape 1 · Avis Google</h2>
           <p>Un avis = une chance de tourner la roue.</p>
-          <a id="review-link" class="btn" href="#" target="_blank" rel="noopener">Ouvrir Google Review</a>
+          <a id="review-link" class="btn" href="#" target="_blank" rel="noopener">Laisser un avis pour obtenir ma recompense</a>
           <label class="checkbox">
             <input id="review-check" type="checkbox" />
             J'ai laisse un avis Google
           </label>
           <label>
-            Code de validation
-            <input id="validation-code" type="text" inputmode="numeric" maxlength="6" placeholder="Code a 6 chiffres" />
+            Prenom
+            <input id="customer-name" type="text" placeholder="Votre prenom" />
           </label>
         </div>
 
         <div class="card">
-          <h2>Etape 2 · La roue</h2>
+          <h2>Etape 2 · Validation</h2>
           <div class="wheel-wrap">
             <canvas id="wheel" width="320" height="320"></canvas>
             <div class="pointer"></div>
           </div>
-          <button id="spin-btn" class="btn" type="button">Tourner la roue</button>
+          <button id="spin-btn" class="btn" type="button">Demander la validation</button>
           <p id="spin-result" class="result"></p>
         </div>
       </section>
 
       <section class="card">
         <h2>A savoir</h2>
-        <p class="muted">L'API Google sera ajoutee plus tard. Pour l'instant, la validation est declarative.</p>
+        <p class="muted">Le commercant valide votre demande apres avoir vu l'avis.</p>
       </section>
     </main>
 

@@ -263,7 +263,11 @@ async function dbGetSpinsByRestaurant(restaurantId, limit = 50) {
       prizeId: row.prize_id,
       prizeLabel: row.prize_label,
       createdAt: row.created_at,
-      reviewConfirmed: row.review_confirmed
+      reviewConfirmed: row.review_confirmed,
+      status: row.status || 'approved',
+      approvedAt: row.approved_at || null,
+      customerName: row.customer_name || '',
+      expiresAt: row.expires_at || null
     }));
   }
   const db = loadDb();
@@ -281,13 +285,81 @@ async function dbInsertSpin(spin) {
       prize_id: spin.prizeId,
       prize_label: spin.prizeLabel,
       created_at: spin.createdAt,
-      review_confirmed: spin.reviewConfirmed
+      review_confirmed: spin.reviewConfirmed,
+      status: spin.status || 'approved',
+      approved_at: spin.approvedAt || null,
+      customer_name: spin.customerName || '',
+      expires_at: spin.expiresAt || null
     });
     return;
   }
   const db = loadDb();
   db.spins.push(spin);
   saveDb(db);
+}
+
+async function dbGetSpinById(id) {
+  if (USE_SUPABASE) {
+    const { data } = await supabase.from('spins').select('*').eq('id', id).maybeSingle();
+    if (!data) return null;
+    return {
+      id: data.id,
+      restaurantId: data.restaurant_id,
+      prizeId: data.prize_id,
+      prizeLabel: data.prize_label,
+      createdAt: data.created_at,
+      reviewConfirmed: data.review_confirmed,
+      status: data.status || 'approved',
+      approvedAt: data.approved_at || null,
+      customerName: data.customer_name || '',
+      expiresAt: data.expires_at || null
+    };
+  }
+  const db = loadDb();
+  return db.spins.find((s) => s.id === id) || null;
+}
+
+async function dbGetPendingSpins(restaurantId) {
+  if (USE_SUPABASE) {
+    const { data } = await supabase
+      .from('spins')
+      .select('*')
+      .eq('restaurant_id', restaurantId)
+      .eq('status', 'pending')
+      .order('created_at', { ascending: false });
+    return (data || []).map((row) => ({
+      id: row.id,
+      prizeLabel: row.prize_label,
+      createdAt: row.created_at,
+      customerName: row.customer_name || '',
+      expiresAt: row.expires_at || null
+    }));
+  }
+  const db = loadDb();
+  return db.spins
+    .filter((s) => s.restaurantId === restaurantId && s.status === 'pending')
+    .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+    .map((s) => ({
+      id: s.id,
+      prizeLabel: s.prizeLabel,
+      createdAt: s.createdAt,
+      customerName: s.customerName || '',
+      expiresAt: s.expiresAt || null
+    }));
+}
+
+async function dbApproveSpin(id) {
+  if (USE_SUPABASE) {
+    await supabase.from('spins').update({ status: 'approved', approved_at: new Date().toISOString() }).eq('id', id);
+    return;
+  }
+  const db = loadDb();
+  const spin = db.spins.find((s) => s.id === id);
+  if (spin) {
+    spin.status = 'approved';
+    spin.approvedAt = new Date().toISOString();
+    saveDb(db);
+  }
 }
 
 async function dbDeleteRestaurant(restaurantId) {
@@ -701,6 +773,38 @@ app.get('/api/admin/me', async (req, res) => {
   });
 });
 
+app.get('/api/admin/pending', async (req, res) => {
+  const cookies = parseCookies(req);
+  const token = cookies[SESSION_COOKIE];
+  if (!token) {
+    return res.status(401).json({ error: 'Non authentifie.' });
+  }
+  const restaurant = await dbGetRestaurantByToken(token);
+  if (!restaurant) {
+    return res.status(404).json({ error: 'Restaurant introuvable.' });
+  }
+  const items = await dbGetPendingSpins(restaurant.id);
+  res.json({ items });
+});
+
+app.post('/api/admin/approve/:id', async (req, res) => {
+  const cookies = parseCookies(req);
+  const token = cookies[SESSION_COOKIE];
+  if (!token) {
+    return res.status(401).json({ error: 'Non authentifie.' });
+  }
+  const restaurant = await dbGetRestaurantByToken(token);
+  if (!restaurant) {
+    return res.status(404).json({ error: 'Restaurant introuvable.' });
+  }
+  const spin = await dbGetSpinById(req.params.id);
+  if (!spin || spin.restaurantId !== restaurant.id) {
+    return res.status(404).json({ error: 'Demande introuvable.' });
+  }
+  await dbApproveSpin(spin.id);
+  res.json({ ok: true });
+});
+
 app.post('/api/admin/prizes', async (req, res) => {
   const cookies = parseCookies(req);
   const token = cookies[SESSION_COOKIE];
@@ -783,6 +887,64 @@ app.get('/api/restaurant/:slug', async (req, res) => {
       logoUrl: restaurant.logoUrl || ''
     },
     prizes
+  });
+});
+
+app.post('/api/claim/:slug', async (req, res) => {
+  const { slug } = req.params;
+  const restaurant = await dbGetRestaurantBySlug(slug);
+  if (!restaurant) {
+    return res.status(404).json({ error: 'Restaurant introuvable.' });
+  }
+  if (restaurant.subscriptionStatus !== 'active') {
+    return res.status(402).json({ error: 'Abonnement inactif.' });
+  }
+
+  const customerName = String((req.body || {}).customerName || '').trim();
+  if (!customerName) {
+    return res.status(400).json({ error: 'Prenom requis.' });
+  }
+
+  const prizes = (await dbGetPrizesByRestaurant(restaurant.id)).filter((p) => p.probability > 0);
+  let picked = pickWeighted(prizes);
+  if (picked && picked.isRetry) {
+    const retryless = prizes.filter((p) => !p.isRetry);
+    picked = pickWeighted(retryless);
+  }
+
+  const expiresAt = new Date(Date.now() + 60 * 1000).toISOString();
+  const spin = {
+    id: randomId(),
+    restaurantId: restaurant.id,
+    prizeId: picked ? picked.id : null,
+    prizeLabel: picked ? picked.label : 'Merci pour votre avis !',
+    createdAt: new Date().toISOString(),
+    reviewConfirmed: Boolean((req.body || {}).reviewConfirmed),
+    status: 'pending',
+    approvedAt: null,
+    customerName,
+    expiresAt
+  };
+
+  await dbInsertSpin(spin);
+  res.json({ claimId: spin.id });
+});
+
+app.get('/api/claim/:id', async (req, res) => {
+  const spin = await dbGetSpinById(req.params.id);
+  if (!spin) {
+    return res.status(404).json({ error: 'Demande introuvable.' });
+  }
+  if (spin.status !== 'approved') {
+    if (spin.expiresAt && new Date(spin.expiresAt).getTime() < Date.now()) {
+      return res.json({ status: 'expired' });
+    }
+    return res.json({ status: 'pending' });
+  }
+  res.json({
+    status: 'approved',
+    prize: spin.prizeLabel,
+    prizeId: spin.prizeId
   });
 });
 

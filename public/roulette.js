@@ -2,7 +2,7 @@ const slug = window.location.pathname.split('/').pop();
 const titleEl = document.querySelector('#restaurant-title');
 const reviewLink = document.querySelector('#review-link');
 const reviewCheck = document.querySelector('#review-check');
-const validationCodeInput = document.querySelector('#validation-code');
+const customerNameInput = document.querySelector('#customer-name');
 const spinBtn = document.querySelector('#spin-btn');
 const resultEl = document.querySelector('#spin-result');
 const canvas = document.querySelector('#wheel');
@@ -11,6 +11,8 @@ const ctx = canvas.getContext('2d');
 let wheelPrizes = [];
 let currentRotation = 0;
 let spinning = false;
+let claimId = null;
+let pollTimer = null;
 
 const palette = ['#ffb703', '#fb8500', '#219ebc', '#8ecae6', '#ff006e', '#8338ec'];
 const SPIN_DURATION = 2600;
@@ -118,6 +120,7 @@ async function loadRoulette() {
   const subscriptionStatus = data.restaurant.subscriptionStatus || 'inactive';
   const themeId = data.restaurant.themeId || 'neon';
   applyTheme(themeId);
+
   const brandLogoClient = document.querySelector('#brand-logo-client');
   if (brandLogoClient) {
     if (data.restaurant.logoUrl) {
@@ -140,7 +143,7 @@ async function loadRoulette() {
     resultEl.textContent = 'Abonnement requis pour jouer.';
   }
 
-  wheelPrizes = data.prizes.filter((p) => p.probability > 0);
+  wheelPrizes = data.prizes.filter((p) => p.probability > 0 && !p.isRetry);
   drawWheel(currentRotation);
 
   if (subscriptionStatus === 'active') {
@@ -148,6 +151,32 @@ async function loadRoulette() {
   }
   if (!canSpinToday()) {
     resultEl.textContent = 'Vous avez deja tourne aujourd\'hui.';
+  }
+}
+
+async function pollClaim() {
+  if (!claimId) return;
+  const response = await fetch(`/api/claim/${claimId}`);
+  if (!response.ok) return;
+  const data = await response.json();
+  if (data.status === 'expired') {
+    clearInterval(pollTimer);
+    pollTimer = null;
+    claimId = null;
+    resultEl.textContent = 'Demande expiree. Reessayez.';
+    spinBtn.disabled = false;
+    spinning = false;
+    return;
+  }
+  if (data.status === 'approved') {
+    clearInterval(pollTimer);
+    pollTimer = null;
+    claimId = null;
+    const index = wheelPrizes.findIndex((p) => p.id === data.prizeId);
+    const targetIndex = index >= 0 ? index : Math.floor(Math.random() * Math.max(1, wheelPrizes.length));
+    resultEl.textContent = data.prize;
+    spinToIndex(targetIndex);
+    markSpun();
   }
 }
 
@@ -163,48 +192,33 @@ spinBtn.addEventListener('click', async () => {
     return;
   }
 
-  const code = (validationCodeInput && validationCodeInput.value || '').trim();
-  if (!code) {
-    alert('Merci de saisir le code de validation.');
+  const customerName = (customerNameInput && customerNameInput.value || '').trim();
+  if (!customerName) {
+    alert('Merci d\'indiquer votre prenom.');
     return;
   }
 
   spinBtn.disabled = true;
   spinning = true;
-  resultEl.textContent = 'La roue tourne...';
+  resultEl.textContent = 'Attente de validation du commercant...';
 
-  const response = await fetch(`/api/spin/${slug}`, {
+  const response = await fetch(`/api/claim/${slug}`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ reviewConfirmed: true, code })
+    body: JSON.stringify({ reviewConfirmed: true, customerName })
   });
 
   if (!response.ok) {
-    if (response.status === 403) {
-      resultEl.textContent = 'Code de validation invalide.';
-    } else {
-      resultEl.textContent = 'Erreur lors du tirage.';
-    }
+    resultEl.textContent = 'Erreur lors de la demande.';
     spinBtn.disabled = false;
     spinning = false;
     return;
   }
 
   const data = await response.json();
-  const index = wheelPrizes.findIndex((p) => p.id === data.prizeId);
-  const targetIndex = index >= 0 ? index : Math.floor(Math.random() * Math.max(1, wheelPrizes.length));
-
-  if (data.retryUsed) {
-    resultEl.textContent = 'Retente ta chance...';
-    setTimeout(() => {
-      resultEl.textContent = data.prize;
-    }, SPIN_DURATION);
-  } else {
-    resultEl.textContent = data.prize;
-  }
-
-  spinToIndex(targetIndex);
-  markSpun();
+  claimId = data.claimId;
+  if (pollTimer) clearInterval(pollTimer);
+  pollTimer = setInterval(pollClaim, 3000);
 });
 
 loadRoulette();

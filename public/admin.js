@@ -15,8 +15,7 @@ const manageBtn = document.querySelector('#manage-btn');
 const subscribeStatus = document.querySelector('#subscribe-status');
 const subscriptionBanner = document.querySelector('#subscription-banner');
 const logoutBtn = document.querySelector('#logout-btn');
-const validationCodeEl = document.querySelector('#validation-code');
-const rotateCodeBtn = document.querySelector('#rotate-code');
+const pendingList = document.querySelector('#pending-list');
 const retryOn = document.querySelector('#retry-on');
 const retryOff = document.querySelector('#retry-off');
 const retryProbability = document.querySelector('#retry-probability');
@@ -160,9 +159,6 @@ async function loadAdmin() {
   renderPrizes(data.prizes);
   renderSpins(data.spins);
   renderSubscription(data.restaurant.subscriptionStatus || 'inactive');
-  if (validationCodeEl) {
-    validationCodeEl.textContent = data.restaurant.validationCode || '------';
-  }
   if (retryOn && retryOff && retryProbability) {
     const retryPrize = (data.prizes || []).find((p) => p.isRetry);
     retryProbability.value = retryPrize ? Number(retryPrize.probability || 0) : 0;
@@ -291,18 +287,44 @@ if (logoutBtn) {
   });
 }
 
-if (rotateCodeBtn && validationCodeEl) {
-  rotateCodeBtn.addEventListener('click', async () => {
-    rotateCodeBtn.disabled = true;
-    const response = await fetch('/api/admin/validation-code/rotate', { method: 'POST' });
-    if (!response.ok) {
-      rotateCodeBtn.disabled = false;
-      return;
-    }
-    const data = await response.json();
-    validationCodeEl.textContent = data.code || '------';
-    rotateCodeBtn.disabled = false;
+async function loadPending() {
+  if (!pendingList) return;
+  const response = await fetch('/api/admin/pending');
+  if (!response.ok) {
+    pendingList.innerHTML = '<p class="muted">Aucune demande.</p>';
+    return;
+  }
+  const data = await response.json();
+  const currentIds = Array.from(pendingList.querySelectorAll('[data-id]')).map((el) => el.getAttribute('data-id'));
+  const newIds = data.items.map((item) => item.id);
+  const hasNew = newIds.some((id) => !currentIds.includes(id));
+  pendingList.innerHTML = '';
+  if (!data.items.length) {
+    pendingList.innerHTML = '<p class="muted">Aucune demande.</p>';
+    return;
+  }
+  data.items.forEach((item) => {
+    const row = document.createElement('div');
+    row.className = 'spin-item';
+    row.innerHTML = `
+      <div>
+        <strong>${item.customerName || 'Client'} · ${item.prizeLabel}</strong>
+        <span>${new Date(item.createdAt).toLocaleString('fr-FR')}</span>
+      </div>
+      <button class="btn ghost" data-id="${item.id}">Valider</button>
+    `;
+    row.querySelector('button').addEventListener('click', async () => {
+      await fetch(`/api/admin/approve/${item.id}`, { method: 'POST' });
+      loadPending();
+      loadAdmin();
+    });
+    pendingList.appendChild(row);
   });
+  if (hasNew) {
+    alert('Nouvelle demande de validation');
+    const audio = new Audio('/notify.mp3');
+    audio.play().catch(() => {});
+  }
 }
 
 if (retryOn && retryOff) {
@@ -319,4 +341,6 @@ if (params.get('billing') === 'cancel') {
 }
 
 setInterval(loadAdmin, 10000);
+setInterval(loadPending, 5000);
 loadAdmin();
+loadPending();
