@@ -67,7 +67,7 @@ function drawWheel(rotation = 0) {
   }
 
   const angleStep = (Math.PI * 2) / wheelPrizes.length;
-  const densityFactor = Math.max(0.55, Math.min(1, 8 / wheelPrizes.length));
+  const densityFactor = Math.max(0.5, Math.min(1, 7 / wheelPrizes.length));
 
   wheelPrizes.forEach((prize, index) => {
     const start = rotation + index * angleStep;
@@ -85,12 +85,12 @@ function drawWheel(rotation = 0) {
     ctx.textBaseline = 'middle';
     ctx.fillStyle = '#0e0f19';
 
-    const baseSize = Math.max(12, Math.min(22, radius * 0.13));
+    const baseSize = Math.max(11, Math.min(18, radius * 0.11));
     const fontSize = Math.floor(baseSize * densityFactor);
     ctx.font = `700 ${fontSize}px "Sora", sans-serif`;
 
-    const textRadius = radius * 0.62;
-    const maxWidth = radius * 0.55;
+    const textRadius = radius * 0.56;
+    const maxWidth = radius * 0.45;
     const lines = wrapLabel(prize.label, maxWidth);
     const lineHeight = fontSize + 2;
     const startY = lines.length === 1 ? 0 : -lineHeight / 2;
