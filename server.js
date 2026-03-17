@@ -1,4 +1,5 @@
 const fs = require('fs');
+const https = require('https');
 const path = require('path');
 const crypto = require('crypto');
 const express = require('express');
@@ -16,6 +17,9 @@ const STRIPE_SECRET_KEY = process.env.STRIPE_SECRET_KEY || '';
 const STRIPE_PRICE_ID = process.env.STRIPE_PRICE_ID || '';
 const STRIPE_WEBHOOK_SECRET = process.env.STRIPE_WEBHOOK_SECRET || '';
 const stripe = STRIPE_SECRET_KEY ? require('stripe')(STRIPE_SECRET_KEY) : null;
+
+const TELEGRAM_BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN || '';
+const TELEGRAM_CHAT_ID = process.env.TELEGRAM_CHAT_ID || '';
 
 const SUPABASE_URL = process.env.SUPABASE_URL || '';
 const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || '';
@@ -78,6 +82,26 @@ function verifyPassword(password, salt, hash) {
   if (!salt || !hash) return false;
   const attempt = crypto.pbkdf2Sync(password, salt, 120000, 64, 'sha512').toString('hex');
   return crypto.timingSafeEqual(Buffer.from(attempt, 'hex'), Buffer.from(hash, 'hex'));
+}
+
+function sendTelegramMessage(text) {
+  if (!TELEGRAM_BOT_TOKEN || !TELEGRAM_CHAT_ID) return;
+  const payload = JSON.stringify({ chat_id: TELEGRAM_CHAT_ID, text });
+  const options = {
+    hostname: 'api.telegram.org',
+    path: `/bot${TELEGRAM_BOT_TOKEN}/sendMessage`,
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Content-Length': Buffer.byteLength(payload)
+    }
+  };
+  const req = https.request(options, (res) => {
+    res.on('data', () => {});
+  });
+  req.on('error', () => {});
+  req.write(payload);
+  req.end();
 }
 
 function pickWeighted(prizes) {
@@ -523,6 +547,16 @@ app.post('/api/signup', async (req, res) => {
   };
 
   await dbInsertRestaurant(restaurant);
+
+  const msg = [
+    'Nouvelle inscription',
+    `Nom: ${restaurant.name}`,
+    `Email: ${restaurant.email}`,
+    `TVA: ${restaurant.vat || '--'}`,
+    `Slug: ${restaurant.slug}`,
+    `Date: ${new Date(restaurant.createdAt).toLocaleString('fr-FR')}`
+  ].join('\n');
+  sendTelegramMessage(msg);
 
   const loginUrl = '/login';
   const qrUrl = `/r/${slug}`;
