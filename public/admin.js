@@ -87,15 +87,15 @@ function renderPrizes(prizes) {
 
 function renderSuggestedPrizes() {
   const suggestions = [
-    'Boisson offerte (soft ou cafe)',
-    'Sauce maison gratuite',
-    'Supplement fromage offert',
-    'Dessert du jour offert',
-    'Portion de frites offerte',
-    '-10% sur la prochaine visite',
-    '-15% sur un menu',
-    '1 menu achete = boisson a moitie prix',
-    '2e dessert a -50%'
+    'Remise -10% sur la prochaine visite',
+    'Cadeau surprise',
+    'Produit offert',
+    'Service premium offert',
+    'Livraison offerte',
+    'Accessoire offert',
+    'Bon d achat 5 EUR',
+    'Points fidelite x2',
+    'Emballage cadeau offert'
   ];
   prizeRows.innerHTML = '';
   suggestions.forEach((label) => {

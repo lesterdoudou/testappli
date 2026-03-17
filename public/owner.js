@@ -12,7 +12,7 @@ function headerTemplate() {
     <div class="table-row header">
       <span>Nom</span>
       <span>Email</span>
-      <span>TVA</span>
+      <span>TVA (opt.)</span>
       <span>Inscription</span>
       <span>Abonnement</span>
       <span>Actions</span>
@@ -37,7 +37,7 @@ function createRow(item) {
   row.innerHTML = `
     <span>${item.name}</span>
     <span>${item.email}</span>
-    <span>${item.vat}</span>
+    <span>${item.vat || '--'}</span>
     <span>${formatDate(item.createdAt)}</span>
     <span class="badge ${item.subscriptionStatus}">${item.subscriptionStatus}</span>
     <div class="owner-actions">

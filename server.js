@@ -482,7 +482,7 @@ app.get('/r/:slug', (req, res) => {
 
 app.post('/api/signup', async (req, res) => {
   const { name, vat, email, reviewUrl, password, logoDataUrl } = req.body || {};
-  if (!name || !vat || !email || !password) {
+  if (!name || !email || !password) {
     return res.status(400).json({ error: 'Champs obligatoires manquants.' });
   }
 
@@ -492,7 +492,7 @@ app.post('/api/signup', async (req, res) => {
     return res.status(409).json({ error: 'Email deja utilise.' });
   }
 
-  const slugBase = slugify(name) || 'restaurant';
+  const slugBase = slugify(name) || 'enseigne';
   const slug = `${slugBase}-${Math.random().toString(36).slice(2, 6)}`;
   const token = randomToken();
   const passwordInfo = hashPassword(String(password));
@@ -500,7 +500,7 @@ app.post('/api/signup', async (req, res) => {
   const restaurant = {
     id: randomId(),
     name,
-    vat,
+    vat: vat || '',
     email: emailLower,
     slug,
     token,
