@@ -490,7 +490,7 @@ app.get('/r/:slug', (req, res) => {
 
 app.post('/api/signup', async (req, res) => {
   const { name, vat, email, reviewUrl, password, logoDataUrl } = req.body || {};
-  if (!name || !email || !password) {
+  if (!name || !email || !password || !reviewUrl) {
     return res.status(400).json({ error: 'Champs obligatoires manquants.' });
   }
 
