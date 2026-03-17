@@ -3,6 +3,7 @@ const qrEl = document.querySelector('#qr');
 const qrLink = document.querySelector('#qr-link');
 const prizeRows = document.querySelector('#prize-rows');
 const addPrizeBtn = document.querySelector('#add-prize');
+const suggestPrizesBtn = document.querySelector('#suggest-prizes');
 const savePrizesBtn = document.querySelector('#save-prizes');
 const saveStatus = document.querySelector('#save-status');
 const spinList = document.querySelector('#spin-list');
@@ -82,6 +83,25 @@ function renderPrizes(prizes) {
   prizes
     .filter((prize) => !prize.isRetry)
     .forEach((prize) => prizeRows.appendChild(createPrizeRow(prize)));
+}
+
+function renderSuggestedPrizes() {
+  const suggestions = [
+    'Boisson offerte (soft ou cafe)',
+    'Sauce maison gratuite',
+    'Supplement fromage offert',
+    'Dessert du jour offert',
+    'Portion de frites offerte',
+    '-10% sur la prochaine visite',
+    '-15% sur un menu',
+    '1 menu achete = boisson a moitie prix',
+    '2e dessert a -50%'
+  ];
+  prizeRows.innerHTML = '';
+  suggestions.forEach((label) => {
+    prizeRows.appendChild(createPrizeRow({ label, probability: 10 }));
+  });
+  markEditing();
 }
 
 function setRetryActive(isActive) {
@@ -170,6 +190,12 @@ addPrizeBtn.addEventListener('click', () => {
   prizeRows.appendChild(createPrizeRow({ label: '', probability: 0 }));
   markEditing();
 });
+
+if (suggestPrizesBtn) {
+  suggestPrizesBtn.addEventListener('click', () => {
+    renderSuggestedPrizes();
+  });
+}
 
 savePrizesBtn.addEventListener('click', async () => {
   const rows = Array.from(prizeRows.querySelectorAll('.table-row'));
