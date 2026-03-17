@@ -668,18 +668,18 @@ app.get('/api/owner/restaurants.csv', async (req, res) => {
   }
   const restaurants = await dbGetRestaurants();
   const rows = restaurants.map((r) => ({
-    id: r.id,
-    name: r.name,
-    email: r.email,
-    vat: r.vat,
-    slug: r.slug,
-    createdAt: r.createdAt || '',
-    subscriptionStatus: r.subscriptionStatus || 'inactive',
-    stripeCustomerId: r.stripeCustomerId || '',
-    stripeSubscriptionId: r.stripeSubscriptionId || ''
+    ID: r.id,
+    Nom: r.name,
+    Email: r.email,
+    TVA: r.vat || '',
+    Slug: r.slug,
+    Inscription: r.createdAt || '',
+    Abonnement: r.subscriptionStatus || 'inactive',
+    StripeCustomerId: r.stripeCustomerId || '',
+    StripeSubscriptionId: r.stripeSubscriptionId || ''
   }));
   const header = Object.keys(rows[0] || {
-    id: '', name: '', email: '', vat: '', slug: '', createdAt: '', subscriptionStatus: '', stripeCustomerId: '', stripeSubscriptionId: ''
+    ID: '', Nom: '', Email: '', TVA: '', Slug: '', Inscription: '', Abonnement: '', StripeCustomerId: '', StripeSubscriptionId: ''
   });
   const escape = (value) => {
     const s = String(value ?? '');
@@ -695,7 +695,7 @@ app.get('/api/owner/restaurants.csv', async (req, res) => {
   });
   const csv = `\uFEFF${lines.join('\n')}`;
   res.setHeader('Content-Type', 'text/csv; charset=utf-8');
-  res.setHeader('Content-Disposition', 'attachment; filename="restaurants.csv"');
+  res.setHeader('Content-Disposition', 'attachment; filename="enseignes.csv"');
   res.send(csv);
 });
 
