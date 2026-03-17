@@ -121,6 +121,7 @@ body.page {
 .form {
   display: grid;
   gap: 14px;
+  min-width: 0;
 }
 
 label {
@@ -137,6 +138,8 @@ input {
   font-size: 1rem;
   background: #ffffff;
   transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  width: 100%;
+  max-width: 100%;
 }
 
 input:focus {
@@ -514,6 +517,14 @@ select {
   font-family: inherit;
   font-size: 1rem;
   background: #ffffff;
+  width: 100%;
+  max-width: 100%;
+}
+
+input[type="file"] {
+  padding: 10px;
+  width: 100%;
+  max-width: 100%;
 }
 
 
