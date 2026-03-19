@@ -48,6 +48,13 @@
           </svg>
           Compte
         </button>
+        <button class="tab-btn" type="button" data-tab="poster">
+          <svg class="tab-icon" viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M5 4h14a1 1 0 0 1 1 1v14l-4-3-4 3-4-3-4 3V5a1 1 0 0 1 1-1z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
+            <path d="M8 8h8" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+          </svg>
+          Decor QR
+        </button>
       </nav>
 
       <section class="card hidden" id="subscription-banner">
@@ -185,6 +192,23 @@
         <div class="divider"></div>
         <h2>Dernieres notifications</h2>
         <div id="spin-list" class="stack"></div>
+      </section>
+
+      <section class="card tab-panel hidden" data-panel="poster">
+        <div class="card-head">
+          <h2>Decor QR</h2>
+          <button id="poster-print" class="btn ghost" type="button">Imprimer / PDF</button>
+        </div>
+        <p class="muted">Imprimez ce decor pour l'afficher en boutique.</p>
+        <div class="poster-wrap" id="poster">
+          <div class="poster-header">
+            <img id="poster-logo" class="poster-logo hidden" alt="Logo enseigne" />
+            <h3 id="poster-name">--</h3>
+          </div>
+          <p class="poster-title">Scanne-moi et recupere un cadeau</p>
+          <div id="poster-qr" class="poster-qr"></div>
+          <p class="poster-footer">Offre valable sur place, apres validation.</p>
+        </div>
       </section>
 
       <section class="card">

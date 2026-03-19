@@ -24,10 +24,14 @@ const retryProbability = document.querySelector('#retry-probability');
 const manualPay = document.querySelector('#manual-pay');
 const tabButtons = document.querySelectorAll('.tab-btn');
 const tabPanels = document.querySelectorAll('.tab-panel');
-
 const suggestionPanel = document.querySelector('#suggestion-panel');
 const suggestionList = document.querySelector('#suggestion-list');
 const closeSuggestionsBtn = document.querySelector('#close-suggestions');
+const posterEl = document.querySelector('#poster');
+const posterQr = document.querySelector('#poster-qr');
+const posterName = document.querySelector('#poster-name');
+const posterLogo = document.querySelector('#poster-logo');
+const posterPrintBtn = document.querySelector('#poster-print');
 
 let restaurantData = null;
 let isEditing = false;
@@ -149,6 +153,29 @@ function setRetryActive(isActive) {
   retryProbability.value = isActive ? retryProbability.value : 0;
 }
 
+function renderPoster(restaurant, qrUrl) {
+  if (!posterEl || !posterQr || !posterName) return;
+  posterName.textContent = restaurant.name || '--';
+  if (posterLogo) {
+    if (restaurant.logoUrl) {
+      posterLogo.src = restaurant.logoUrl;
+      posterLogo.classList.remove('hidden');
+    } else {
+      posterLogo.classList.add('hidden');
+    }
+  }
+  posterQr.innerHTML = '';
+  // eslint-disable-next-line no-undef
+  new QRCode(posterQr, {
+    text: qrUrl,
+    width: 240,
+    height: 240,
+    colorDark: '#0b0f19',
+    colorLight: '#ffffff',
+    correctLevel: QRCode.CorrectLevel.H
+  });
+}
+
 function renderSubscription(status) {
   if (!subscriptionStatusEl || !subscribeBtn) return;
   const normalized = status === 'active' ? 'active' : (status === 'pending' ? 'pending' : 'inactive');
@@ -201,14 +228,14 @@ async function loadAdmin() {
     if (manageBtn) manageBtn.style.display = '';
   }
   if (manualPay) {
-  manualPay.classList.toggle('hidden', !manualOnly);
-  const ref = document.querySelector('#payment-reference');
-  if (ref) {
-    ref.textContent = 'R-' + data.restaurant.slug;
+    manualPay.classList.toggle('hidden', !manualOnly);
+    const ref = document.querySelector('#payment-reference');
+    if (ref) {
+      ref.textContent = 'R-' + data.restaurant.slug;
+    }
   }
-}
 
-restaurantData = data.restaurant;
+  restaurantData = data.restaurant;
   nameEl.textContent = data.restaurant.name;
   restaurantForm.elements.name.value = data.restaurant.name;
   restaurantForm.elements.email.value = data.restaurant.email;
@@ -244,6 +271,7 @@ restaurantData = data.restaurant;
     });
   }
 
+  renderPoster(data.restaurant, qrUrl);
   renderSubscription(data.restaurant.subscriptionStatus || 'inactive');
   renderPrizes(data.prizes || []);
   renderSpins(data.spins || []);
@@ -366,6 +394,16 @@ async function submitRestaurantUpdate(payload) {
   }
 
   loadAdmin();
+}
+
+if (posterPrintBtn && posterEl) {
+  posterPrintBtn.addEventListener('click', () => {
+    const win = window.open('', '_blank');
+    if (!win) return;
+    const html = `<!doctype html><html><head><meta charset="utf-8"/><title>Decor QR</title><style>body{font-family:Sora,Arial,sans-serif;margin:24px;background:#f5f7fb;} .poster-wrap{background:#fff;border-radius:24px;padding:28px;border:2px solid rgba(0,224,255,.25);box-shadow:0 18px 40px rgba(11,15,25,.2);max-width:520px;margin:0 auto;text-align:center;} .poster-header{display:flex;flex-direction:column;align-items:center;gap:10px;margin-bottom:12px;} .poster-logo{width:72px;height:72px;border-radius:16px;object-fit:cover;border:1px solid #e2e6ef;} .poster-title{font-size:1.3rem;font-weight:700;margin:6px 0 18px;} .poster-qr{width:240px;height:240px;margin:0 auto 16px;padding:10px;border-radius:16px;border:2px solid #0b0f19;display:flex;align-items:center;justify-content:center;box-sizing:border-box;background:#fff;} .poster-qr canvas,.poster-qr img{width:100%;height:100%;display:block;} .poster-footer{color:#5a6172;font-size:.9rem}</style></head><body>${posterEl.outerHTML}<script>window.onload=()=>window.print();</script></body></html>`;
+    win.document.write(html);
+    win.document.close();
+  });
 }
 
 if (subscribeBtn) {
@@ -495,18 +533,3 @@ setInterval(loadAdmin, 10000);
 setInterval(loadPending, 5000);
 loadAdmin();
 loadPending();
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
