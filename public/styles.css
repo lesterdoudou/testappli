@@ -394,6 +394,19 @@ textarea {
   color: #e7ecff;
 }
 
+.poster-wrap.theme-luxe {
+  background: radial-gradient(circle at top, #1f1a0e 0%, #14100a 55%, #0b0a08 100%);
+  border-color: rgba(201, 161, 77, 0.6);
+  box-shadow: 0 22px 52px rgba(0, 0, 0, 0.55), 0 0 30px rgba(201, 161, 77, 0.35);
+  color: #f7f0d8;
+}
+
+.poster-wrap.theme-pastel {
+  background: radial-gradient(circle at top, #fdf8ff 0%, #f6e9ff 45%, #e8f3ff 100%);
+  border-color: rgba(255, 175, 220, 0.55);
+  box-shadow: 0 18px 44px rgba(140, 120, 255, 0.2), 0 0 26px rgba(255, 175, 220, 0.25);
+}
+
 .poster-wrap.theme-dark .poster-title {
   color: #f5f7fb;
 }
@@ -408,6 +421,14 @@ textarea {
 
 .poster-wrap.theme-nuit .poster-footer {
   color: rgba(231, 236, 255, 0.7);
+}
+
+.poster-wrap.theme-luxe .poster-title {
+  color: #f7f0d8;
+}
+
+.poster-wrap.theme-luxe .poster-footer {
+  color: rgba(247, 240, 216, 0.65);
 }
 
 .poster-wrap.theme-neon::before {
