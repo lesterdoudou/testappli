@@ -142,6 +142,7 @@ function mapRestaurantRow(row) {
     createdAt: row.created_at,
     subscriptionStatus: row.subscription_status || 'inactive',
     themeId: row.theme_id || 'neon',
+    posterThemeId: row.poster_theme_id || 'neon',
     validationCode: row.validation_code || '',
     logoUrl: row.logo_url || '',
     stripeCustomerId: row.stripe_customer_id || '',
@@ -163,6 +164,7 @@ function mapRestaurantToRow(restaurant) {
     created_at: restaurant.createdAt,
     subscription_status: restaurant.subscriptionStatus || 'inactive',
     theme_id: restaurant.themeId || 'neon',
+    poster_theme_id: restaurant.posterThemeId || 'neon',
     validation_code: restaurant.validationCode || '',
     logo_url: restaurant.logoUrl || '',
     stripe_customer_id: restaurant.stripeCustomerId || '',
@@ -543,6 +545,7 @@ app.post('/api/signup', async (req, res) => {
     createdAt: new Date().toISOString(),
     subscriptionStatus: 'inactive',
     themeId: 'neon',
+    posterThemeId: 'neon',
     validationCode: generateValidationCode(),
     logoUrl: logoDataUrl || ''
   };
@@ -809,6 +812,7 @@ app.get('/api/admin/me', async (req, res) => {
       subscriptionStatus: restaurant.subscriptionStatus || 'inactive',
       validationCode: restaurant.validationCode || '',
       themeId: restaurant.themeId || 'neon',
+      posterThemeId: restaurant.posterThemeId || 'neon',
       logoUrl: restaurant.logoUrl || ''
     },
     billing: {
@@ -942,11 +946,12 @@ app.post('/api/admin/restaurant', async (req, res) => {
     return res.status(402).json({ error: 'Abonnement inactif.' });
   }
 
-  const { name, email, reviewUrl, themeId, logoDataUrl } = req.body || {};
+  const { name, email, reviewUrl, themeId, posterThemeId, logoDataUrl } = req.body || {};
   if (name) restaurant.name = String(name).trim();
   if (email) restaurant.email = String(email).trim();
   if (reviewUrl !== undefined) restaurant.reviewUrl = String(reviewUrl).trim();
   if (themeId) restaurant.themeId = String(themeId).trim();
+  if (posterThemeId) restaurant.posterThemeId = String(posterThemeId).trim();
   if (logoDataUrl !== undefined) restaurant.logoUrl = String(logoDataUrl).trim();
 
   await dbUpdateRestaurant(restaurant.id, {
@@ -954,6 +959,7 @@ app.post('/api/admin/restaurant', async (req, res) => {
     email: restaurant.email,
     review_url: restaurant.reviewUrl,
     theme_id: restaurant.themeId,
+    poster_theme_id: restaurant.posterThemeId,
     logo_url: restaurant.logoUrl || ''
   });
 

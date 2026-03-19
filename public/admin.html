@@ -200,7 +200,17 @@
           <button id="poster-print" class="btn ghost" type="button">Imprimer / PDF</button>
         </div>
         <p class="muted">Imprimez ce decor pour l'afficher en boutique.</p>
-        <div class="poster-wrap" id="poster">
+        <div class="poster-controls">
+          <label>
+            Theme du decor
+            <select id="poster-theme">
+              <option value="neon">Neon (flash)</option>
+              <option value="dark">Dark (premium)</option>
+            </select>
+          </label>
+          <button id="poster-save" class="btn" type="button">Enregistrer le decor</button>
+        </div>
+        <div class="poster-wrap theme-neon" id="poster">
           <div class="poster-header">
             <img id="poster-logo" class="poster-logo hidden" alt="Logo enseigne" />
             <h3 id="poster-name">--</h3>

@@ -32,6 +32,8 @@ const posterQr = document.querySelector('#poster-qr');
 const posterName = document.querySelector('#poster-name');
 const posterLogo = document.querySelector('#poster-logo');
 const posterPrintBtn = document.querySelector('#poster-print');
+const posterThemeSelect = document.querySelector('#poster-theme');
+const posterSaveBtn = document.querySelector('#poster-save');
 
 let restaurantData = null;
 let isEditing = false;
@@ -153,9 +155,16 @@ function setRetryActive(isActive) {
   retryProbability.value = isActive ? retryProbability.value : 0;
 }
 
+function applyPosterTheme(themeId) {
+  if (!posterEl) return;
+  posterEl.classList.remove('theme-neon', 'theme-dark');
+  posterEl.classList.add('theme-' + (themeId || 'neon'));
+}
+
 function renderPoster(restaurant, qrUrl) {
   if (!posterEl || !posterQr || !posterName) return;
   posterName.textContent = restaurant.name || '--';
+  applyPosterTheme(restaurant.posterThemeId);
   if (posterLogo) {
     if (restaurant.logoUrl) {
       posterLogo.src = restaurant.logoUrl;
@@ -243,6 +252,9 @@ async function loadAdmin() {
   if (themeSelect) {
     themeSelect.value = data.restaurant.themeId || 'neon';
   }
+  if (posterThemeSelect) {
+    posterThemeSelect.value = data.restaurant.posterThemeId || 'neon';
+  }
   if (brandLogoAdmin) {
     if (data.restaurant.logoUrl) {
       brandLogoAdmin.src = data.restaurant.logoUrl;
@@ -304,6 +316,19 @@ if (suggestPrizesBtn) {
 if (closeSuggestionsBtn) {
   closeSuggestionsBtn.addEventListener('click', () => {
     if (suggestionPanel) suggestionPanel.classList.add('hidden');
+  });
+}
+
+if (posterThemeSelect) {
+  posterThemeSelect.addEventListener('change', () => {
+    applyPosterTheme(posterThemeSelect.value);
+  });
+}
+
+if (posterSaveBtn) {
+  posterSaveBtn.addEventListener('click', async () => {
+    if (!posterThemeSelect) return;
+    await submitRestaurantUpdate({ posterThemeId: posterThemeSelect.value });
   });
 }
 
@@ -533,3 +558,9 @@ setInterval(loadAdmin, 10000);
 setInterval(loadPending, 5000);
 loadAdmin();
 loadPending();
+
+
+
+
+
+
