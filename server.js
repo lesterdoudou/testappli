@@ -942,9 +942,6 @@ app.post('/api/admin/restaurant', async (req, res) => {
   if (!restaurant) {
     return res.status(404).json({ error: 'Restaurant introuvable.' });
   }
-  if (restaurant.subscriptionStatus !== 'active') {
-    return res.status(402).json({ error: 'Abonnement inactif.' });
-  }
 
   const { name, email, reviewUrl, themeId, posterThemeId, logoDataUrl } = req.body || {};
   if (name) restaurant.name = String(name).trim();
