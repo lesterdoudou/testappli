@@ -301,6 +301,13 @@ textarea {
   border-radius: 999px;
 }
 
+.site-footer {
+  margin-top: 24px;
+  text-align: center;
+  font-size: 0.85rem;
+  color: var(--muted);
+}
+
 .muted {
   color: var(--muted);
   font-size: 0.9rem;
