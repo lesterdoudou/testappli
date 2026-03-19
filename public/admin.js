@@ -12,6 +12,7 @@ const themeSelect = document.querySelector('#theme-select');
 const brandLogoAdmin = document.querySelector('#brand-logo-admin');
 const subscriptionStatusEl = document.querySelector('#subscription-status');
 const subscribeBtn = document.querySelector('#subscribe-btn');
+const requestBtn = document.querySelector('#request-btn');
 const manageBtn = document.querySelector('#manage-btn');
 const subscribeStatus = document.querySelector('#subscribe-status');
 const subscriptionBanner = document.querySelector('#subscription-banner');
@@ -117,11 +118,14 @@ function setRetryActive(isActive) {
 
 function renderSubscription(status) {
   if (!subscriptionStatusEl || !subscribeBtn) return;
-  const normalized = status === 'active' ? 'active' : 'inactive';
+  const normalized = status === 'active' ? 'active' : (status === 'pending' ? 'pending' : 'inactive');
   subscriptionStatusEl.textContent = normalized;
-  subscriptionStatusEl.classList.remove('active', 'inactive');
+  subscriptionStatusEl.classList.remove('active', 'inactive', 'pending');
   subscriptionStatusEl.classList.add(normalized);
-  subscribeBtn.disabled = normalized === 'active';
+  subscribeBtn.disabled = normalized !== 'inactive';
+  if (requestBtn) {
+    requestBtn.disabled = normalized !== 'inactive';
+  }
   if (manageBtn) {
     manageBtn.disabled = normalized !== 'active';
   }
@@ -317,6 +321,19 @@ if (subscribeBtn) {
     }
     const data = await response.json();
     window.location.href = data.url;
+  });
+}
+
+if (requestBtn) {
+  requestBtn.addEventListener('click', async () => {
+    subscribeStatus.textContent = 'Demande d\'activation envoyee...';
+    const response = await fetch('/api/admin/request-activation', { method: 'POST' });
+    if (!response.ok) {
+      subscribeStatus.textContent = 'Impossible d\'envoyer la demande.';
+      return;
+    }
+    subscribeStatus.textContent = 'Demande envoyee. Vous serez active bientot.';
+    loadAdmin();
   });
 }
 

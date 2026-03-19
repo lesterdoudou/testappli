@@ -847,6 +847,31 @@ app.post('/api/admin/approve/:id', async (req, res) => {
   res.json({ ok: true });
 });
 
+app.post('/api/admin/request-activation', async (req, res) => {
+  const cookies = parseCookies(req);
+  const token = cookies[SESSION_COOKIE];
+  if (!token) {
+    return res.status(401).json({ error: 'Non authentifie.' });
+  }
+  const restaurant = await dbGetRestaurantByToken(token);
+  if (!restaurant) {
+    return res.status(404).json({ error: 'Restaurant introuvable.' });
+  }
+  if (restaurant.subscriptionStatus === 'active') {
+    return res.json({ ok: true });
+  }
+  await dbUpdateRestaurant(restaurant.id, { subscription_status: 'pending' });
+  const msg = [
+    'Demande activation abonnement',
+    `Nom: ${restaurant.name}`,
+    `Email: ${restaurant.email}`,
+    `TVA: ${restaurant.vat || '--'}`,
+    `Slug: ${restaurant.slug}`
+  ].join('\n');
+  sendTelegramMessage(msg);
+  res.json({ ok: true });
+});
+
 app.delete('/api/admin/pending/:id', async (req, res) => {
   const cookies = parseCookies(req);
   const token = cookies[SESSION_COOKIE];

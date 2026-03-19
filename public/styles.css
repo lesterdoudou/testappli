@@ -356,6 +356,11 @@ textarea {
   color: #8a1c8a;
 }
 
+.badge.pending {
+  background: rgba(255, 196, 0, 0.2);
+  color: #8a5a00;
+}
+
 @keyframes floatIn {
   from {
     opacity: 0;
