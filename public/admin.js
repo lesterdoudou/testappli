@@ -157,7 +157,7 @@ function setRetryActive(isActive) {
 
 function applyPosterTheme(themeId) {
   if (!posterEl) return;
-  posterEl.classList.remove('theme-neon', 'theme-dark', 'theme-sunset');
+  posterEl.classList.remove('theme-neon', 'theme-dark', 'theme-sunset', 'theme-nuit');
   posterEl.classList.add('theme-' + (themeId || 'neon'));
 }
 
@@ -558,6 +558,7 @@ setInterval(loadAdmin, 10000);
 setInterval(loadPending, 5000);
 loadAdmin();
 loadPending();
+
 
 
 

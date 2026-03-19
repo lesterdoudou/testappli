@@ -387,6 +387,13 @@ textarea {
   box-shadow: 0 20px 48px rgba(255, 153, 51, 0.25), 0 0 30px rgba(255, 92, 0, 0.2);
 }
 
+.poster-wrap.theme-nuit {
+  background: radial-gradient(circle at top, #1b2440 0%, #0f1730 55%, #0a1022 100%);
+  border-color: rgba(120, 162, 255, 0.45);
+  box-shadow: 0 20px 48px rgba(10, 16, 34, 0.55), 0 0 28px rgba(120, 162, 255, 0.25);
+  color: #e7ecff;
+}
+
 .poster-wrap.theme-dark .poster-title {
   color: #f5f7fb;
 }
@@ -395,6 +402,13 @@ textarea {
   color: rgba(245, 247, 251, 0.7);
 }
 
+.poster-wrap.theme-nuit .poster-title {
+  color: #e7ecff;
+}
+
+.poster-wrap.theme-nuit .poster-footer {
+  color: rgba(231, 236, 255, 0.7);
+}
 
 .poster-wrap.theme-neon::before {
   content: none;
