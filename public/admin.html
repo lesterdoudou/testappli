@@ -21,9 +21,33 @@
       </header>
 
       <nav class="tab-nav">
-        <button class="tab-btn active" type="button" data-tab="wheel">Roue</button>
-        <button class="tab-btn" type="button" data-tab="stats">Stats</button>
-        <button class="tab-btn" type="button" data-tab="account">Compte</button>
+        <button class="tab-btn active" type="button" data-tab="wheel">
+          <svg class="tab-icon" viewBox="0 0 24 24" aria-hidden="true">
+            <circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="2"/>
+            <circle cx="12" cy="12" r="2.5" fill="currentColor"/>
+            <path d="M12 3 L12 9" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+            <path d="M21 12 L15 12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+            <path d="M12 21 L12 15" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+            <path d="M3 12 L9 12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+          </svg>
+          Roue
+        </button>
+        <button class="tab-btn" type="button" data-tab="stats">
+          <svg class="tab-icon" viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M4 20V9" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+            <path d="M10 20V5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+            <path d="M16 20V12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+            <path d="M22 20H2" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+          </svg>
+          Stats
+        </button>
+        <button class="tab-btn" type="button" data-tab="account">
+          <svg class="tab-icon" viewBox="0 0 24 24" aria-hidden="true">
+            <circle cx="12" cy="8" r="4" fill="none" stroke="currentColor" stroke-width="2"/>
+            <path d="M4 21c1.6-3.8 5-6 8-6s6.4 2.2 8 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+          </svg>
+          Compte
+        </button>
       </nav>
 
       <section class="card hidden" id="subscription-banner">

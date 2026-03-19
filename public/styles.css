@@ -283,12 +283,20 @@ textarea {
   border-radius: 999px;
   font-weight: 600;
   cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
 }
 
 .tab-btn.active {
   background: linear-gradient(120deg, var(--accent), var(--accent-2), var(--accent-3));
   color: #0b0f19;
   box-shadow: 0 10px 22px rgba(0, 224, 255, 0.25);
+}
+
+.tab-icon {
+  width: 18px;
+  height: 18px;
 }
 
 .tab-panel.hidden {
