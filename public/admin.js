@@ -24,6 +24,7 @@ const retryProbability = document.querySelector('#retry-probability');
 
 let restaurantData = null;
 let isEditing = false;
+let stripeEnabled = true;
 
 function formatDate(ts) {
   if (!ts) return '--';
@@ -122,12 +123,12 @@ function renderSubscription(status) {
   subscriptionStatusEl.textContent = normalized;
   subscriptionStatusEl.classList.remove('active', 'inactive', 'pending');
   subscriptionStatusEl.classList.add(normalized);
-  subscribeBtn.disabled = normalized !== 'inactive';
+  subscribeBtn.disabled = normalized !== 'inactive' || !stripeEnabled;
   if (requestBtn) {
     requestBtn.disabled = normalized !== 'inactive';
   }
   if (manageBtn) {
-    manageBtn.disabled = normalized !== 'active';
+    manageBtn.disabled = normalized !== 'active' || !stripeEnabled;
   }
   if (subscriptionBanner) {
     subscriptionBanner.classList.toggle('hidden', normalized === 'active');
@@ -158,6 +159,15 @@ async function loadAdmin() {
     return;
   }
   const data = await response.json();
+  stripeEnabled = !data.billing || data.billing.stripeEnabled;
+  if (!stripeEnabled) {
+    if (subscribeBtn) subscribeBtn.style.display = 'none';
+    if (manageBtn) manageBtn.style.display = 'none';
+  } else {
+    if (subscribeBtn) subscribeBtn.style.display = '';
+    if (manageBtn) manageBtn.style.display = '';
+  }
+
   restaurantData = data.restaurant;
   nameEl.textContent = data.restaurant.name;
   restaurantForm.elements.name.value = data.restaurant.name;
@@ -313,6 +323,7 @@ async function submitRestaurantUpdate(payload) {
 
 if (subscribeBtn) {
   subscribeBtn.addEventListener('click', async () => {
+    if (!stripeEnabled) return;
     subscribeStatus.textContent = 'Redirection vers Stripe...';
     const response = await fetch('/api/billing/checkout', { method: 'POST' });
     if (!response.ok) {
@@ -339,6 +350,7 @@ if (requestBtn) {
 
 if (manageBtn) {
   manageBtn.addEventListener('click', async () => {
+    if (!stripeEnabled) return;
     subscribeStatus.textContent = 'Ouverture du portail Stripe...';
     const response = await fetch('/api/billing/portal', { method: 'POST' });
     if (!response.ok) {
@@ -378,7 +390,7 @@ async function loadPending() {
     row.className = 'spin-item';
     row.innerHTML = `
       <div>
-        <strong>${item.customerName || 'Client'} · ${item.prizeLabel}</strong>
+        <strong>${item.customerName || 'Client'} - ${item.prizeLabel}</strong>
         <span>${new Date(item.createdAt).toLocaleString('fr-FR')}</span>
       </div>
       <div class="pending-actions">

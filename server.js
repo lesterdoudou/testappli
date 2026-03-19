@@ -17,6 +17,7 @@ const STRIPE_SECRET_KEY = process.env.STRIPE_SECRET_KEY || '';
 const STRIPE_PRICE_ID = process.env.STRIPE_PRICE_ID || '';
 const STRIPE_WEBHOOK_SECRET = process.env.STRIPE_WEBHOOK_SECRET || '';
 const stripe = STRIPE_SECRET_KEY ? require('stripe')(STRIPE_SECRET_KEY) : null;
+const MANUAL_BILLING_ONLY = process.env.MANUAL_BILLING_ONLY === 'true';
 
 const TELEGRAM_BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN || '';
 const TELEGRAM_CHAT_ID = process.env.TELEGRAM_CHAT_ID || '';
@@ -809,6 +810,10 @@ app.get('/api/admin/me', async (req, res) => {
       validationCode: restaurant.validationCode || '',
       themeId: restaurant.themeId || 'neon',
       logoUrl: restaurant.logoUrl || ''
+    },
+    billing: {
+      stripeEnabled: Boolean(stripe && STRIPE_PRICE_ID) && !MANUAL_BILLING_ONLY,
+      manualOnly: MANUAL_BILLING_ONLY
     },
     prizes,
     spins
