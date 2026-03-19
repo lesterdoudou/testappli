@@ -371,58 +371,64 @@ textarea {
 .poster-wrap.theme-neon {
   background:
     radial-gradient(circle at top, #ffffff 0%, #e9f2ff 55%, #d7ebff 100%),
-    linear-gradient(135deg, rgba(0, 224, 255, 0.08), rgba(255, 59, 255, 0.06)),
-    repeating-linear-gradient(135deg, rgba(0, 224, 255, 0.05) 0 12px, rgba(255, 255, 255, 0) 12px 24px);
+    linear-gradient(135deg, rgba(0, 224, 255, 0.14), rgba(255, 59, 255, 0.12)),
+    repeating-linear-gradient(135deg, rgba(0, 224, 255, 0.12) 0 12px, rgba(255, 255, 255, 0) 12px 24px);
   border-color: rgba(0, 224, 255, 0.4);
-  box-shadow: 0 20px 48px rgba(11, 15, 25, 0.22), 0 0 26px rgba(0, 224, 255, 0.18);
+  box-shadow: 0 20px 48px rgba(11, 15, 25, 0.22), 0 0 26px rgba(0, 224, 255, 0.18), inset 0 0 0 1px rgba(0, 224, 255, 0.2);
+  background-blend-mode: normal, overlay, soft-light;
 }
 
 .poster-wrap.theme-dark {
   background:
     radial-gradient(circle at top, #21283a 0%, #111625 55%, #0b0f19 100%),
-    linear-gradient(135deg, rgba(255, 196, 0, 0.08), rgba(0, 224, 255, 0.06)),
-    repeating-linear-gradient(135deg, rgba(255, 196, 0, 0.06) 0 14px, rgba(0, 0, 0, 0) 14px 28px);
+    linear-gradient(135deg, rgba(255, 196, 0, 0.16), rgba(0, 224, 255, 0.12)),
+    repeating-linear-gradient(135deg, rgba(255, 196, 0, 0.14) 0 14px, rgba(0, 0, 0, 0) 14px 28px);
   border-color: rgba(255, 196, 0, 0.35);
-  box-shadow: 0 22px 52px rgba(0, 0, 0, 0.5), 0 0 24px rgba(255, 196, 0, 0.18);
+  box-shadow: 0 22px 52px rgba(0, 0, 0, 0.5), 0 0 24px rgba(255, 196, 0, 0.18), inset 0 0 0 1px rgba(255, 196, 0, 0.2);
   color: #f5f7fb;
+  background-blend-mode: normal, overlay, soft-light;
 }
 
 .poster-wrap.theme-sunset {
   background:
     radial-gradient(circle at top, #fff2e6 0%, #ffd4b0 55%, #ffb07a 100%),
-    linear-gradient(135deg, rgba(255, 92, 0, 0.08), rgba(255, 214, 142, 0.08)),
-    repeating-linear-gradient(135deg, rgba(255, 92, 0, 0.06) 0 14px, rgba(255, 255, 255, 0) 14px 28px);
+    linear-gradient(135deg, rgba(255, 92, 0, 0.16), rgba(255, 214, 142, 0.16)),
+    repeating-linear-gradient(135deg, rgba(255, 92, 0, 0.14) 0 14px, rgba(255, 255, 255, 0) 14px 28px);
   border-color: rgba(255, 153, 51, 0.45);
-  box-shadow: 0 20px 48px rgba(255, 153, 51, 0.22), 0 0 26px rgba(255, 92, 0, 0.18);
+  box-shadow: 0 20px 48px rgba(255, 153, 51, 0.22), 0 0 26px rgba(255, 92, 0, 0.18), inset 0 0 0 1px rgba(255, 153, 51, 0.2);
+  background-blend-mode: normal, overlay, soft-light;
 }
 
 .poster-wrap.theme-nuit {
   background:
     radial-gradient(circle at top, #1b2440 0%, #0f1730 55%, #0a1022 100%),
-    linear-gradient(135deg, rgba(120, 162, 255, 0.1), rgba(44, 96, 197, 0.1)),
-    repeating-linear-gradient(135deg, rgba(120, 162, 255, 0.07) 0 14px, rgba(0, 0, 0, 0) 14px 28px);
+    linear-gradient(135deg, rgba(120, 162, 255, 0.18), rgba(44, 96, 197, 0.18)),
+    repeating-linear-gradient(135deg, rgba(120, 162, 255, 0.14) 0 14px, rgba(0, 0, 0, 0) 14px 28px);
   border-color: rgba(120, 162, 255, 0.45);
-  box-shadow: 0 20px 48px rgba(10, 16, 34, 0.55), 0 0 28px rgba(120, 162, 255, 0.25);
+  box-shadow: 0 20px 48px rgba(10, 16, 34, 0.55), 0 0 28px rgba(120, 162, 255, 0.25), inset 0 0 0 1px rgba(120, 162, 255, 0.25);
   color: #e7ecff;
+  background-blend-mode: normal, overlay, soft-light;
 }
 
 .poster-wrap.theme-luxe {
   background:
     radial-gradient(circle at top, #1f1a0e 0%, #14100a 55%, #0b0a08 100%),
-    linear-gradient(135deg, rgba(201, 161, 77, 0.12), rgba(96, 74, 26, 0.12)),
-    repeating-linear-gradient(135deg, rgba(201, 161, 77, 0.08) 0 16px, rgba(0, 0, 0, 0) 16px 32px);
+    linear-gradient(135deg, rgba(201, 161, 77, 0.2), rgba(96, 74, 26, 0.18)),
+    repeating-linear-gradient(135deg, rgba(201, 161, 77, 0.16) 0 16px, rgba(0, 0, 0, 0) 16px 32px);
   border-color: rgba(201, 161, 77, 0.6);
-  box-shadow: 0 22px 52px rgba(0, 0, 0, 0.55), 0 0 30px rgba(201, 161, 77, 0.35);
+  box-shadow: 0 22px 52px rgba(0, 0, 0, 0.55), 0 0 30px rgba(201, 161, 77, 0.35), inset 0 0 0 1px rgba(201, 161, 77, 0.28);
   color: #f7f0d8;
+  background-blend-mode: normal, overlay, soft-light;
 }
 
 .poster-wrap.theme-pastel {
   background:
     radial-gradient(circle at top, #fdf8ff 0%, #f6e9ff 45%, #e8f3ff 100%),
-    linear-gradient(135deg, rgba(255, 175, 220, 0.12), rgba(153, 214, 255, 0.12)),
-    repeating-linear-gradient(135deg, rgba(255, 175, 220, 0.08) 0 12px, rgba(255, 255, 255, 0) 12px 24px);
+    linear-gradient(135deg, rgba(255, 175, 220, 0.18), rgba(153, 214, 255, 0.18)),
+    repeating-linear-gradient(135deg, rgba(255, 175, 220, 0.14) 0 12px, rgba(255, 255, 255, 0) 12px 24px);
   border-color: rgba(255, 175, 220, 0.55);
-  box-shadow: 0 18px 44px rgba(140, 120, 255, 0.2), 0 0 26px rgba(255, 175, 220, 0.25);
+  box-shadow: 0 18px 44px rgba(140, 120, 255, 0.2), 0 0 26px rgba(255, 175, 220, 0.25), inset 0 0 0 1px rgba(255, 175, 220, 0.22);
+  background-blend-mode: normal, overlay, soft-light;
 }
 
 .poster-wrap.theme-dark .poster-title {
