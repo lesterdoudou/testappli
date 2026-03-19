@@ -320,6 +320,11 @@ textarea {
   margin-bottom: 12px;
 }
 
+.poster-header h3 {
+  font-size: 1.15rem;
+  letter-spacing: 0.02em;
+}
+
 .poster-logo {
   width: 72px;
   height: 72px;
@@ -327,6 +332,21 @@ textarea {
   object-fit: cover;
   border: 1px solid rgba(0, 224, 255, 0.35);
   box-shadow: 0 10px 24px rgba(0, 224, 255, 0.25);
+}
+
+.poster-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 6px 14px;
+  border-radius: 999px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  margin: 4px auto 10px;
+  background: rgba(255, 255, 255, 0.8);
+  border: 1px solid rgba(0, 224, 255, 0.4);
 }
 
 .poster-title {
@@ -364,16 +384,28 @@ textarea {
 }
 
 .poster-wrap.theme-neon {
-  background: radial-gradient(circle at top, rgba(255, 255, 255, 0.95), rgba(231, 240, 255, 0.9) 45%, rgba(210, 229, 255, 0.85) 100%);
+  background:
+    radial-gradient(circle at top, rgba(255, 255, 255, 0.95), rgba(231, 240, 255, 0.9) 45%, rgba(210, 229, 255, 0.85) 100%),
+    repeating-linear-gradient(135deg, rgba(0, 224, 255, 0.12), rgba(0, 224, 255, 0.12) 12px, rgba(255, 59, 255, 0.08) 12px, rgba(255, 59, 255, 0.08) 24px);
   border-color: rgba(0, 224, 255, 0.4);
   box-shadow: 0 20px 48px rgba(11, 15, 25, 0.25), 0 0 32px rgba(0, 224, 255, 0.2);
 }
 
 .poster-wrap.theme-dark {
-  background: radial-gradient(circle at top, #1d2230, #0f1320 55%, #0b0f19 100%);
+  background:
+    radial-gradient(circle at top, #1d2230, #0f1320 55%, #0b0f19 100%),
+    repeating-linear-gradient(135deg, rgba(255, 196, 0, 0.18), rgba(255, 196, 0, 0.18) 14px, rgba(0, 224, 255, 0.12) 14px, rgba(0, 224, 255, 0.12) 28px);
   border-color: rgba(255, 196, 0, 0.35);
   box-shadow: 0 20px 48px rgba(0, 0, 0, 0.45), 0 0 28px rgba(255, 196, 0, 0.2);
   color: #f5f7fb;
+}
+
+.poster-wrap.theme-sunset {
+  background:
+    radial-gradient(circle at top, rgba(255, 245, 229, 0.98), rgba(255, 210, 170, 0.9) 45%, rgba(255, 168, 119, 0.85) 100%),
+    repeating-linear-gradient(135deg, rgba(255, 92, 0, 0.18), rgba(255, 92, 0, 0.18) 14px, rgba(255, 214, 142, 0.18) 14px, rgba(255, 214, 142, 0.18) 28px);
+  border-color: rgba(255, 153, 51, 0.45);
+  box-shadow: 0 20px 48px rgba(255, 153, 51, 0.25), 0 0 30px rgba(255, 92, 0, 0.2);
 }
 
 .poster-wrap.theme-dark .poster-title {
@@ -382,6 +414,12 @@ textarea {
 
 .poster-wrap.theme-dark .poster-footer {
   color: rgba(245, 247, 251, 0.7);
+}
+
+.poster-wrap.theme-dark .poster-badge {
+  background: rgba(15, 19, 32, 0.85);
+  border-color: rgba(255, 196, 0, 0.5);
+  color: #ffd06a;
 }
 
 .poster-wrap.theme-neon::before {
@@ -426,6 +464,28 @@ textarea {
   height: 300px;
   background: radial-gradient(circle, rgba(0, 224, 255, 0.2), rgba(0, 224, 255, 0));
   opacity: 0.4;
+}
+
+.poster-wrap.theme-sunset::before {
+  content: '';
+  position: absolute;
+  top: -120px;
+  right: -120px;
+  width: 260px;
+  height: 260px;
+  background: radial-gradient(circle, rgba(255, 92, 0, 0.4), rgba(255, 92, 0, 0));
+  opacity: 0.6;
+}
+
+.poster-wrap.theme-sunset::after {
+  content: '';
+  position: absolute;
+  bottom: -140px;
+  left: -120px;
+  width: 300px;
+  height: 300px;
+  background: radial-gradient(circle, rgba(255, 214, 142, 0.5), rgba(255, 214, 142, 0));
+  opacity: 0.6;
 }
 
 .poster-controls {
