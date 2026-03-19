@@ -22,6 +22,9 @@ const retryOn = document.querySelector('#retry-on');
 const retryOff = document.querySelector('#retry-off');
 const retryProbability = document.querySelector('#retry-probability');
 const manualPay = document.querySelector('#manual-pay');
+const suggestionPanel = document.querySelector('#suggestion-panel');
+const suggestionList = document.querySelector('#suggestion-list');
+const closeSuggestionsBtn = document.querySelector('#close-suggestions');
 
 let restaurantData = null;
 let isEditing = false;
@@ -93,6 +96,7 @@ function renderPrizes(prizes) {
 }
 
 function renderSuggestedPrizes() {
+  if (!suggestionPanel || !suggestionList) return;
   const suggestions = [
     'Remise -10% sur la prochaine visite',
     'Cadeau surprise',
@@ -104,11 +108,24 @@ function renderSuggestedPrizes() {
     'Points fidelite x2',
     'Emballage cadeau offert'
   ];
-  prizeRows.innerHTML = '';
+  suggestionPanel.classList.remove('hidden');
+  suggestionList.innerHTML = '';
   suggestions.forEach((label) => {
-    prizeRows.appendChild(createPrizeRow({ label, probability: 10 }));
+    const row = document.createElement('div');
+    row.className = 'suggestion-item';
+    const text = document.createElement('span');
+    text.textContent = label;
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'btn ghost';
+    btn.textContent = 'Ajouter';
+    btn.addEventListener('click', () => {
+      prizeRows.appendChild(createPrizeRow({ label: label, probability: 10 }));
+      markEditing();
+    });
+    row.append(text, btn);
+    suggestionList.appendChild(row);
   });
-  markEditing();
 }
 
 function setRetryActive(isActive) {
@@ -240,6 +257,12 @@ if (addPrizeBtn) {
 if (suggestPrizesBtn) {
   suggestPrizesBtn.addEventListener('click', () => {
     renderSuggestedPrizes();
+  });
+}
+
+if (closeSuggestionsBtn) {
+  closeSuggestionsBtn.addEventListener('click', () => {
+    if (suggestionPanel) suggestionPanel.classList.add('hidden');
   });
 }
 
@@ -450,6 +473,10 @@ setInterval(loadAdmin, 10000);
 setInterval(loadPending, 5000);
 loadAdmin();
 loadPending();
+
+
+
+
 
 
 
