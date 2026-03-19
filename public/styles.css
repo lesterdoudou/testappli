@@ -304,8 +304,10 @@ textarea {
 .site-footer {
   margin-top: 24px;
   text-align: center;
-  font-size: 0.85rem;
-  color: var(--muted);
+  font-size: 1rem;
+  font-weight: 600;
+  color: #d5a64a;
+  text-shadow: 0 6px 16px rgba(213, 166, 74, 0.35);
 }
 
 .muted {
