@@ -306,8 +306,16 @@ textarea {
   text-align: center;
   font-size: 1rem;
   font-weight: 600;
-  color: #d5a64a;
   text-shadow: 0 6px 16px rgba(213, 166, 74, 0.35);
+}
+
+.site-footer a {
+  color: #d5a64a;
+  text-decoration: none;
+}
+
+.site-footer a:hover {
+  text-decoration: underline;
 }
 
 .muted {
