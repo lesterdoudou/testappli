@@ -21,10 +21,12 @@ const pendingList = document.querySelector('#pending-list');
 const retryOn = document.querySelector('#retry-on');
 const retryOff = document.querySelector('#retry-off');
 const retryProbability = document.querySelector('#retry-probability');
+const manualPay = document.querySelector('#manual-pay');
 
 let restaurantData = null;
 let isEditing = false;
 let stripeEnabled = true;
+let manualOnly = false;
 
 function formatDate(ts) {
   if (!ts) return '--';
@@ -160,12 +162,16 @@ async function loadAdmin() {
   }
   const data = await response.json();
   stripeEnabled = !data.billing || data.billing.stripeEnabled;
+  manualOnly = Boolean(data.billing && data.billing.manualOnly);
   if (!stripeEnabled) {
     if (subscribeBtn) subscribeBtn.style.display = 'none';
     if (manageBtn) manageBtn.style.display = 'none';
   } else {
     if (subscribeBtn) subscribeBtn.style.display = '';
     if (manageBtn) manageBtn.style.display = '';
+  }
+  if (manualPay) {
+    manualPay.classList.toggle('hidden', !manualOnly);
   }
 
   restaurantData = data.restaurant;
