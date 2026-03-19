@@ -203,10 +203,11 @@ restaurantData = data.restaurant;
   if (qrEl) {
     qrEl.innerHTML = '';
     // eslint-disable-next-line no-undef
+    const size = Math.max(120, Math.min(220, qrEl.clientWidth || 180));
     new QRCode(qrEl, {
       text: qrUrl,
-      width: 180,
-      height: 180,
+      width: size,
+      height: size,
       colorDark: '#0b0f19',
       colorLight: '#ffffff',
       correctLevel: QRCode.CorrectLevel.H
@@ -449,6 +450,7 @@ setInterval(loadAdmin, 10000);
 setInterval(loadPending, 5000);
 loadAdmin();
 loadPending();
+
 
 
 
