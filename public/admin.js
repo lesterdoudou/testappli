@@ -171,10 +171,14 @@ async function loadAdmin() {
     if (manageBtn) manageBtn.style.display = '';
   }
   if (manualPay) {
-    manualPay.classList.toggle('hidden', !manualOnly);
+  manualPay.classList.toggle('hidden', !manualOnly);
+  const ref = document.querySelector('#payment-reference');
+  if (ref) {
+    ref.textContent = 'R-' + data.restaurant.slug;
   }
+}
 
-  restaurantData = data.restaurant;
+restaurantData = data.restaurant;
   nameEl.textContent = data.restaurant.name;
   restaurantForm.elements.name.value = data.restaurant.name;
   restaurantForm.elements.email.value = data.restaurant.email;
@@ -445,3 +449,9 @@ setInterval(loadAdmin, 10000);
 setInterval(loadPending, 5000);
 loadAdmin();
 loadPending();
+
+
+
+
+
+
