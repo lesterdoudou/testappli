@@ -22,6 +22,9 @@ const retryOn = document.querySelector('#retry-on');
 const retryOff = document.querySelector('#retry-off');
 const retryProbability = document.querySelector('#retry-probability');
 const manualPay = document.querySelector('#manual-pay');
+const tabButtons = document.querySelectorAll('.tab-btn');
+const tabPanels = document.querySelectorAll('.tab-panel');
+
 const suggestionPanel = document.querySelector('#suggestion-panel');
 const suggestionList = document.querySelector('#suggestion-list');
 const closeSuggestionsBtn = document.querySelector('#close-suggestions');
@@ -30,6 +33,16 @@ let restaurantData = null;
 let isEditing = false;
 let stripeEnabled = true;
 let manualOnly = false;
+
+function setActiveTab(name) {
+  tabButtons.forEach((btn) => {
+    btn.classList.toggle('active', btn.getAttribute('data-tab') === name);
+  });
+  tabPanels.forEach((panel) => {
+    panel.classList.toggle('hidden', panel.getAttribute('data-panel') !== name);
+  });
+  localStorage.setItem('adminTab', name);
+}
 
 function formatDate(ts) {
   if (!ts) return '--';
@@ -456,6 +469,15 @@ async function loadPending() {
   }
 }
 
+tabButtons.forEach((btn) => {
+  btn.addEventListener('click', () => {
+    setActiveTab(btn.getAttribute('data-tab'));
+  });
+});
+
+const savedTab = localStorage.getItem('adminTab') || 'wheel';
+setActiveTab(savedTab);
+
 if (retryOn && retryOff) {
   retryOn.addEventListener('click', () => setRetryActive(true));
   retryOff.addEventListener('click', () => setRetryActive(false));
@@ -473,6 +495,10 @@ setInterval(loadAdmin, 10000);
 setInterval(loadPending, 5000);
 loadAdmin();
 loadPending();
+
+
+
+
 
 
 

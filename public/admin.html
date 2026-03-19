@@ -20,12 +20,18 @@
         <p>Configurez vos cadeaux et surveillez les avis qui declenchent une roulette.</p>
       </header>
 
+      <nav class="tab-nav">
+        <button class="tab-btn active" type="button" data-tab="wheel">Roue</button>
+        <button class="tab-btn" type="button" data-tab="stats">Stats</button>
+        <button class="tab-btn" type="button" data-tab="account">Compte</button>
+      </nav>
+
       <section class="card hidden" id="subscription-banner">
         <h2>Abonnement requis</h2>
         <p class="muted">Votre abonnement est inactif. Activez-le pour acceder a la configuration de la roue.</p>
       </section>
 
-      <section class="grid">
+      <section class="grid tab-panel" data-panel="account">
         <div class="card">
           <h2>Votre lien QR</h2>
           <p>Partagez ce QR code sur place pour que les clients puissent acceder a la roulette.</p>
@@ -111,14 +117,9 @@
           </div>
         </div>
 
-        <div class="card">
-          <h2>Validation manuelle</h2>
-          <p class="muted">Le client laisse un avis, puis vous validez sa demande ici.</p>
-          <div id="pending-list" class="stack"></div>
-        </div>
       </section>
 
-      <section class="card">
+      <section class="card tab-panel" data-panel="wheel">
         <div class="card-head">
           <h2>Roue de la fortune</h2>
           <div class="owner-actions">
@@ -157,7 +158,11 @@
         <p id="save-status" class="muted"></p>
       </section>
 
-      <section class="card">
+      <section class="card tab-panel hidden" data-panel="stats">
+        <h2>Validation manuelle</h2>
+        <p class="muted">Le client laisse un avis, puis vous validez sa demande ici.</p>
+        <div id="pending-list" class="stack"></div>
+        <div class="divider"></div>
         <h2>Dernieres notifications</h2>
         <div id="spin-list" class="stack"></div>
       </section>
