@@ -141,6 +141,7 @@ function drawWheel(rotation = 0) {
     ctx.translate(radius, radius);
     const midAngle = start + angleStep / 2;
     ctx.rotate(midAngle);
+    ctx.rotate(Math.PI / 2); // make text follow the slice (tangent)
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
     ctx.fillStyle = '#0e0f19';
@@ -150,12 +151,17 @@ function drawWheel(rotation = 0) {
       ctx.rotate(Math.PI);
     }
 
+    const innerRadius = radius * 0.25;
+    const outerRadius = radius * 0.9;
+    const band = outerRadius - innerRadius;
+    const textOffset = -(innerRadius + band * 0.55);
+
     const maxLines = 4;
     let fontSize = Math.floor(Math.max(12, Math.min(22, radius * 0.12)) * densityFactor);
     let lines = [];
     let lineHeight = fontSize + 2;
 
-    for (let attempts = 0; attempts < 12; attempts += 1) {
+    for (let attempts = 0; attempts < 14; attempts += 1) {
       ctx.font = `700 ${fontSize}px "Sora", sans-serif`;
       lines = wrapLabel(prize.label, maxWidth);
       lineHeight = fontSize + 2;
@@ -166,9 +172,9 @@ function drawWheel(rotation = 0) {
     }
 
     const totalHeight = lines.length * lineHeight;
-    const startY = -totalHeight / 2 + lineHeight / 2;
+    const startY = textOffset - totalHeight / 2 + lineHeight / 2;
     lines.forEach((line, i) => {
-      ctx.fillText(line, textRadius, startY + i * lineHeight);
+      ctx.fillText(line, 0, startY + i * lineHeight);
     });
 
     ctx.restore();
