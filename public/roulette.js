@@ -118,7 +118,8 @@ function drawWheel(rotation = 0) {
 
     ctx.save();
     ctx.translate(radius, radius);
-    ctx.rotate(start + angleStep / 2);
+    const midAngle = start + angleStep / 2;
+    ctx.rotate(midAngle);
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
     ctx.fillStyle = '#0e0f19';
@@ -126,11 +127,17 @@ function drawWheel(rotation = 0) {
     let fontSize = Math.floor(Math.max(11, Math.min(18, radius * 0.11)) * densityFactor);
     ctx.font = `700 ${fontSize}px "Sora", sans-serif`;
     const lines = wrapLabel(prize.label, maxWidth, 3);
+    // Keep text readable (not upside down)
+    if (midAngle > Math.PI / 2 && midAngle < Math.PI * 1.5) {
+      ctx.rotate(Math.PI);
+    }
+
     const lineHeight = fontSize + 2;
     const startY = lines.length === 1 ? 0 : lines.length === 2 ? -lineHeight / 2 : -lineHeight;
+    const textRadiusAdjusted = lines.length >= 3 ? textRadius * 0.92 : textRadius;
 
     lines.forEach((line, i) => {
-      ctx.fillText(line, textRadius, startY + i * lineHeight);
+      ctx.fillText(line, textRadiusAdjusted, startY + i * lineHeight);
     });
 
     ctx.restore();
