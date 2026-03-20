@@ -99,7 +99,7 @@ function createPrizeRow(prize = {}) {
   if (probInput) {
     probInput.addEventListener('input', () => {
       const value = Number(probInput.value || 0);
-      if (value > 100) {
+      if (value >= 100) {
         probInput.value = 99;
       }
     });
@@ -567,7 +567,7 @@ if (retryProbability) {
   retryProbability.setAttribute('max', '100');
   retryProbability.addEventListener('input', () => {
     const value = Number(retryProbability.value || 0);
-    if (value > 100) {
+    if (value >= 100) {
       retryProbability.value = 99;
     }
   });
