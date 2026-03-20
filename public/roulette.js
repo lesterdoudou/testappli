@@ -109,7 +109,7 @@ function easeOutBack(t) {
   return 1 + c3 * Math.pow(t - 1, 3) + c1 * Math.pow(t - 1, 2);
 }
 
-function spinToIndex(index) {
+function spinToIndex(index, onComplete) {
   if (!wheelPrizes.length) return;
   const angleStep = (Math.PI * 2) / wheelPrizes.length;
   const targetAngle = Math.PI * 1.5 - (index + 0.5) * angleStep;
@@ -128,6 +128,9 @@ function spinToIndex(index) {
     } else {
       spinning = false;
       spinBtn.disabled = false;
+      if (typeof onComplete === 'function') {
+        onComplete();
+      }
     }
   }
 
@@ -213,8 +216,10 @@ async function pollClaim() {
     claimId = null;
     const index = wheelPrizes.findIndex((p) => p.id === data.prizeId);
     const targetIndex = index >= 0 ? index : Math.floor(Math.random() * Math.max(1, wheelPrizes.length));
-    resultEl.textContent = data.prize;
-    spinToIndex(targetIndex);
+    resultEl.textContent = 'La roue tourne...';
+    spinToIndex(targetIndex, () => {
+      resultEl.textContent = data.prize;
+    });
     markSpun();
   }
 }
