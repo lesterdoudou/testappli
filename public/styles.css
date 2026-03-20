@@ -653,14 +653,14 @@ textarea {
 
 .wheel-wrap {
   position: relative;
-  width: 320px;
-  height: 320px;
+  width: 360px;
+  height: 360px;
   margin: 0 auto 16px;
 }
 
 #wheel {
-  width: 320px;
-  height: 320px;
+  width: 360px;
+  height: 360px;
   border-radius: 50%;
   border: 6px solid #0b0f19;
   box-shadow: 0 12px 28px rgba(11, 15, 25, 0.2), 0 0 22px var(--glow);
@@ -856,13 +856,13 @@ textarea {
   }
 
   .wheel-wrap {
-    width: 260px;
-    height: 260px;
+    width: 300px;
+    height: 300px;
   }
 
   #wheel {
-    width: 260px;
-    height: 260px;
+    width: 300px;
+    height: 300px;
   }
 
   .card-head {
@@ -932,13 +932,13 @@ textarea {
 
 @media (max-width: 420px) {
   .wheel-wrap {
-    width: 220px;
-    height: 220px;
+    width: 260px;
+    height: 260px;
   }
 
   #wheel {
-    width: 220px;
-    height: 220px;
+    width: 260px;
+    height: 260px;
   }
 }
 

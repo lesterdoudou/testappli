@@ -34,21 +34,51 @@ function setReviewState(isConfirmed) {
   if (reviewNo) reviewNo.classList.toggle('active', !isConfirmed);
 }
 
-function wrapLabel(text, maxWidth, maxLines = 3) {
+function wrapLabel(text, maxWidth) {
   const words = String(text || '').split(' ');
   const lines = [];
   let line = '';
+
+  const pushLine = () => {
+    if (line) {
+      lines.push(line);
+      line = '';
+    }
+  };
+
   words.forEach((word) => {
+    if (!word) return;
+    if (ctx.measureText(word).width > maxWidth) {
+      const chars = [...word];
+      let chunk = '';
+      chars.forEach((ch) => {
+        const next = chunk + ch;
+        if (ctx.measureText(next).width <= maxWidth) {
+          chunk = next;
+        } else {
+          pushLine();
+          lines.push(chunk || ch);
+          chunk = '';
+        }
+      });
+      if (chunk) {
+        pushLine();
+        line = chunk;
+      }
+      return;
+    }
+
     const test = line ? `${line} ${word}` : word;
     if (ctx.measureText(test).width <= maxWidth) {
       line = test;
     } else {
-      if (line) lines.push(line);
+      pushLine();
       line = word;
     }
   });
-  if (line) lines.push(line);
-  return lines.slice(0, maxLines);
+
+  pushLine();
+  return lines;
 }
 
 function buildColors(count) {
@@ -92,8 +122,10 @@ function drawWheel(rotation = 0) {
 
   const angleStep = (Math.PI * 2) / wheelPrizes.length;
   const densityFactor = Math.max(0.55, Math.min(1, 7 / wheelPrizes.length));
-  const textRadius = radius * 0.56;
-  const maxWidth = radius * 0.42;
+  const textRadius = radius * 0.6;
+  const maxArcLength = angleStep * textRadius;
+  const maxWidth = Math.min(radius * 0.55, maxArcLength * 0.9);
+  const maxTextHeight = maxArcLength * 0.85;
 
   const colors = buildColors(wheelPrizes.length);
   wheelPrizes.forEach((prize, index) => {
@@ -113,26 +145,30 @@ function drawWheel(rotation = 0) {
     ctx.textBaseline = 'middle';
     ctx.fillStyle = '#0e0f19';
 
-    let fontSize = Math.floor(Math.max(11, Math.min(20, radius * 0.12)) * densityFactor);
-    let lines = [];
-    for (let attempts = 0; attempts < 8; attempts += 1) {
-      ctx.font = `700 ${fontSize}px "Sora", sans-serif`;
-      lines = wrapLabel(prize.label, maxWidth, 3);
-      const tooWide = lines.some((line) => ctx.measureText(line).width > maxWidth);
-      if (!tooWide && lines.length <= 3) break;
-      fontSize = Math.max(9, fontSize - 1);
-    }
-    // Keep text aligned with the slice (radial), but not upside down
-    if (midAngle > Math.PI / 2 && midAngle < Math.PI * 1.5) {
+    const normalized = ((midAngle % (Math.PI * 2)) + Math.PI * 2) % (Math.PI * 2);
+    if (normalized > Math.PI / 2 && normalized < Math.PI * 1.5) {
       ctx.rotate(Math.PI);
     }
 
-    const lineHeight = fontSize + 2;
-    const startY = lines.length === 1 ? 0 : lines.length === 2 ? -lineHeight / 2 : -lineHeight;
-    const textRadiusAdjusted = lines.length >= 3 ? textRadius * 0.9 : textRadius;
+    const maxLines = 4;
+    let fontSize = Math.floor(Math.max(12, Math.min(22, radius * 0.12)) * densityFactor);
+    let lines = [];
+    let lineHeight = fontSize + 2;
 
+    for (let attempts = 0; attempts < 12; attempts += 1) {
+      ctx.font = `700 ${fontSize}px "Sora", sans-serif`;
+      lines = wrapLabel(prize.label, maxWidth);
+      lineHeight = fontSize + 2;
+      const tooWide = lines.some((line) => ctx.measureText(line).width > maxWidth);
+      const tooTall = lines.length > maxLines || lines.length * lineHeight > maxTextHeight;
+      if (!tooWide && !tooTall) break;
+      fontSize = Math.max(9, fontSize - 1);
+    }
+
+    const totalHeight = lines.length * lineHeight;
+    const startY = -totalHeight / 2 + lineHeight / 2;
     lines.forEach((line, i) => {
-      ctx.fillText(line, textRadiusAdjusted, startY + i * lineHeight);
+      ctx.fillText(line, textRadius, startY + i * lineHeight);
     });
 
     ctx.restore();
