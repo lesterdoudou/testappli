@@ -6,6 +6,9 @@ const reviewNo = document.querySelector('#review-no');
 const customerNameInput = document.querySelector('#customer-name');
 const spinBtn = document.querySelector('#spin-btn');
 const resultEl = document.querySelector('#spin-result');
+const modal = document.querySelector('#result-modal');
+const modalResult = document.querySelector('#modal-result');
+const modalClose = document.querySelector('#modal-close');
 const canvas = document.querySelector('#wheel');
 const ctx = canvas.getContext('2d');
 
@@ -15,6 +18,7 @@ let spinning = false;
 let claimId = null;
 let pollTimer = null;
 let reviewConfirmed = false;
+let pendingPrizeText = '';
 
 const palette = ['#ffb703', '#fb8500', '#219ebc', '#8ecae6', '#ff006e', '#8338ec'];
 const SPIN_DURATION = 7000;
@@ -137,6 +141,17 @@ function spinToIndex(index, onComplete) {
   requestAnimationFrame(animate);
 }
 
+function openResultModal(text) {
+  if (!modal || !modalResult) return;
+  modalResult.textContent = text;
+  modal.classList.remove('hidden');
+}
+
+function closeResultModal() {
+  if (!modal) return;
+  modal.classList.add('hidden');
+}
+
 function canSpinToday() {
   const key = `roulette-spin-${slug}`;
   const last = localStorage.getItem(key);
@@ -216,9 +231,12 @@ async function pollClaim() {
     claimId = null;
     const index = wheelPrizes.findIndex((p) => p.id === data.prizeId);
     const targetIndex = index >= 0 ? index : Math.floor(Math.random() * Math.max(1, wheelPrizes.length));
+    pendingPrizeText = data.prize;
     resultEl.textContent = 'La roue tourne...';
     spinToIndex(targetIndex, () => {
-      resultEl.textContent = data.prize;
+      resultEl.textContent = pendingPrizeText;
+      openResultModal(pendingPrizeText);
+      pendingPrizeText = '';
     });
     markSpun();
   }
@@ -264,6 +282,16 @@ spinBtn.addEventListener('click', async () => {
   if (pollTimer) clearInterval(pollTimer);
   pollTimer = setInterval(pollClaim, 3000);
 });
+
+if (modalClose) {
+  modalClose.addEventListener('click', closeResultModal);
+}
+
+if (modal) {
+  modal.addEventListener('click', (event) => {
+    if (event.target === modal) closeResultModal();
+  });
+}
 
 if (reviewYes && reviewNo) {
   reviewYes.addEventListener('click', () => setReviewState(true));
