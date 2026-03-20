@@ -63,6 +63,11 @@ function buildColors(count) {
     colors.push(color);
     cursor += 1;
   }
+  if (colors.length > 1 && colors[0] === colors[colors.length - 1]) {
+    const lastIndex = colors.length - 1;
+    const alt = palette[(cursor + 1) % palette.length];
+    colors[lastIndex] = alt === colors[colors.length - 2] ? palette[(cursor + 2) % palette.length] : alt;
+  }
   return colors;
 }
 
@@ -86,7 +91,20 @@ function drawWheel(rotation = 0) {
   }
 
   const angleStep = (Math.PI * 2) / wheelPrizes.length;
-  const densityFactor = Math.max(0.5, Math.min(1, 7 / wheelPrizes.length));
+  const densityFactor = Math.max(0.55, Math.min(1, 7 / wheelPrizes.length));
+  const textRadius = radius * 0.56;
+  const maxWidth = radius * 0.42;
+  let fontSize = Math.floor(Math.max(11, Math.min(18, radius * 0.11)) * densityFactor);
+  for (let attempts = 0; attempts < 6; attempts += 1) {
+    ctx.font = `700 ${fontSize}px "Sora", sans-serif`;
+    const fitsAll = wheelPrizes.every((prize) => {
+      const lines = wrapLabel(prize.label, maxWidth, 3);
+      if (!lines.length) return true;
+      return lines.length <= 3 && lines.every((line) => ctx.measureText(line).width <= maxWidth);
+    });
+    if (fitsAll) break;
+    fontSize = Math.max(9, fontSize - 2);
+  }
 
   const colors = buildColors(wheelPrizes.length);
   wheelPrizes.forEach((prize, index) => {
@@ -106,16 +124,8 @@ function drawWheel(rotation = 0) {
     ctx.fillStyle = '#0e0f19';
 
     let fontSize = Math.floor(Math.max(11, Math.min(18, radius * 0.11)) * densityFactor);
-    const textRadius = radius * 0.56;
-    const maxWidth = radius * 0.42;
-    let lines = [];
-    for (let attempts = 0; attempts < 6; attempts += 1) {
-      ctx.font = `700 ${fontSize}px "Sora", sans-serif`;
-      lines = wrapLabel(prize.label, maxWidth, 3);
-      const tooWide = lines.some((line) => ctx.measureText(line).width > maxWidth);
-      if (!tooWide && lines.length <= 3) break;
-      fontSize = Math.max(9, fontSize - 2);
-    }
+    ctx.font = `700 ${fontSize}px "Sora", sans-serif`;
+    const lines = wrapLabel(prize.label, maxWidth, 3);
     const lineHeight = fontSize + 2;
     const startY = lines.length === 1 ? 0 : lines.length === 2 ? -lineHeight / 2 : -lineHeight;
 
