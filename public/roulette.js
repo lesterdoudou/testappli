@@ -122,10 +122,10 @@ function drawWheel(rotation = 0) {
 
   const angleStep = (Math.PI * 2) / wheelPrizes.length;
   const densityFactor = Math.max(0.55, Math.min(1, 7 / wheelPrizes.length));
-  const textRadius = radius * 0.6;
-  const maxArcLength = angleStep * textRadius;
-  const maxWidth = Math.min(radius * 0.55, maxArcLength * 0.9);
-  const maxTextHeight = maxArcLength * 0.85;
+  const textRadius = radius * 0.65;
+  const arcLength = angleStep * textRadius;
+  const maxWidth = Math.min(radius * 0.6, arcLength * 0.75);
+  const maxTextHeight = arcLength * 0.75;
 
   const colors = buildColors(wheelPrizes.length);
   wheelPrizes.forEach((prize, index) => {
@@ -140,8 +140,15 @@ function drawWheel(rotation = 0) {
     ctx.save();
     ctx.translate(radius, radius);
     const midAngle = start + angleStep / 2;
+
+    // Clip to the current slice so text never bleeds into neighbors
+    ctx.beginPath();
+    ctx.moveTo(0, 0);
+    ctx.arc(0, 0, radius - 6, start - rotation, end - rotation);
+    ctx.closePath();
+    ctx.clip();
+
     ctx.rotate(midAngle);
-    ctx.rotate(Math.PI / 2); // make text follow the slice (tangent)
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
     ctx.fillStyle = '#0e0f19';
@@ -151,12 +158,6 @@ function drawWheel(rotation = 0) {
       ctx.rotate(Math.PI);
     }
 
-    const innerRadius = radius * 0.25;
-    const outerRadius = radius * 0.9;
-    const band = outerRadius - innerRadius;
-    const textOffset = -(innerRadius + band * 0.55);
-
-    const maxLines = 4;
     let fontSize = Math.floor(Math.max(12, Math.min(22, radius * 0.12)) * densityFactor);
     let lines = [];
     let lineHeight = fontSize + 2;
@@ -165,16 +166,20 @@ function drawWheel(rotation = 0) {
       ctx.font = `700 ${fontSize}px "Sora", sans-serif`;
       lines = wrapLabel(prize.label, maxWidth);
       lineHeight = fontSize + 2;
+      const maxLines = Math.max(1, Math.floor(maxTextHeight / lineHeight));
       const tooWide = lines.some((line) => ctx.measureText(line).width > maxWidth);
-      const tooTall = lines.length > maxLines || lines.length * lineHeight > maxTextHeight;
-      if (!tooWide && !tooTall) break;
+      const tooTall = lines.length > maxLines;
+      if (!tooWide && !tooTall) {
+        lines = lines.slice(0, maxLines);
+        break;
+      }
       fontSize = Math.max(9, fontSize - 1);
     }
 
     const totalHeight = lines.length * lineHeight;
-    const startY = textOffset - totalHeight / 2 + lineHeight / 2;
+    const startY = -totalHeight / 2 + lineHeight / 2;
     lines.forEach((line, i) => {
-      ctx.fillText(line, 0, startY + i * lineHeight);
+      ctx.fillText(line, textRadius, startY + i * lineHeight);
     });
 
     ctx.restore();
