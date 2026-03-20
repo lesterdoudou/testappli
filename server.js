@@ -799,7 +799,8 @@ app.get('/api/admin/me', async (req, res) => {
     restaurant.validationCode = generateValidationCode();
     await dbUpdateRestaurant(restaurant.id, { validation_code: restaurant.validationCode });
   }
-  const prizes = await dbGetPrizesByRestaurant(restaurant.id);
+  let prizes = await dbGetPrizesByRestaurant(restaurant.id);
+  prizes = prizes.filter((p) => p.probability > 0 && String(p.label || '').trim().length > 0);
   const spins = await dbGetSpinsByRestaurant(restaurant.id, 50);
 
   res.json({
@@ -970,7 +971,8 @@ app.get('/api/restaurant/:slug', async (req, res) => {
     return res.status(404).json({ error: 'Restaurant introuvable.' });
   }
 
-  const prizes = await dbGetPrizesByRestaurant(restaurant.id);
+  let prizes = await dbGetPrizesByRestaurant(restaurant.id);
+  prizes = prizes.filter((p) => p.probability > 0 && String(p.label || '').trim().length > 0);
   res.json({
     restaurant: {
       name: restaurant.name,
