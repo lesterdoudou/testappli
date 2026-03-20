@@ -122,14 +122,14 @@ function drawWheel(rotation = 0) {
       if (!tooWide && lines.length <= 3) break;
       fontSize = Math.max(9, fontSize - 1);
     }
-    // Keep text readable (not upside down)
+    // Keep text aligned with the slice (radial), but not upside down
     if (midAngle > Math.PI / 2 && midAngle < Math.PI * 1.5) {
       ctx.rotate(Math.PI);
     }
 
     const lineHeight = fontSize + 2;
     const startY = lines.length === 1 ? 0 : lines.length === 2 ? -lineHeight / 2 : -lineHeight;
-    const textRadiusAdjusted = lines.length >= 3 ? textRadius * 0.92 : textRadius;
+    const textRadiusAdjusted = lines.length >= 3 ? textRadius * 0.9 : textRadius;
 
     lines.forEach((line, i) => {
       ctx.fillText(line, textRadiusAdjusted, startY + i * lineHeight);
