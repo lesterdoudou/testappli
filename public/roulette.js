@@ -279,7 +279,7 @@ async function loadRoulette() {
     resultEl.textContent = 'Abonnement requis pour jouer.';
   }
 
-  wheelPrizes = data.prizes.filter((p) => p.probability > 0);
+  wheelPrizes = data.prizes.filter((p) => p.probability > 0 && String(p.label || '').trim().length > 0);
   drawWheel(currentRotation);
 
   if (subscriptionStatus === 'active') {
