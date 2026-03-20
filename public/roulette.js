@@ -34,7 +34,7 @@ function setReviewState(isConfirmed) {
   if (reviewNo) reviewNo.classList.toggle('active', !isConfirmed);
 }
 
-function wrapLabel(text, maxWidth) {
+function wrapLabel(text, maxWidth, maxLines = 3) {
   const words = String(text || '').split(' ');
   const lines = [];
   let line = '';
@@ -48,16 +48,22 @@ function wrapLabel(text, maxWidth) {
     }
   });
   if (line) lines.push(line);
-  return lines.slice(0, 2);
+  return lines.slice(0, maxLines);
 }
 
-function pickColor(index) {
-  const color = palette[index % palette.length];
-  const prev = palette[(index - 1 + palette.length) % palette.length];
-  if (color === prev) {
-    return palette[(index + 1) % palette.length];
+function buildColors(count) {
+  const colors = [];
+  let cursor = 0;
+  for (let i = 0; i < count; i += 1) {
+    let color = palette[cursor % palette.length];
+    if (i > 0 && color === colors[i - 1]) {
+      cursor += 1;
+      color = palette[cursor % palette.length];
+    }
+    colors.push(color);
+    cursor += 1;
   }
-  return color;
+  return colors;
 }
 
 function drawWheel(rotation = 0) {
@@ -82,13 +88,14 @@ function drawWheel(rotation = 0) {
   const angleStep = (Math.PI * 2) / wheelPrizes.length;
   const densityFactor = Math.max(0.5, Math.min(1, 7 / wheelPrizes.length));
 
+  const colors = buildColors(wheelPrizes.length);
   wheelPrizes.forEach((prize, index) => {
     const start = rotation + index * angleStep;
     const end = start + angleStep;
     ctx.beginPath();
     ctx.moveTo(radius, radius);
     ctx.arc(radius, radius, radius - 4, start, end);
-    ctx.fillStyle = pickColor(index);
+    ctx.fillStyle = colors[index];
     ctx.fill();
 
     ctx.save();
@@ -101,15 +108,16 @@ function drawWheel(rotation = 0) {
     let fontSize = Math.floor(Math.max(11, Math.min(18, radius * 0.11)) * densityFactor);
     const textRadius = radius * 0.56;
     const maxWidth = radius * 0.42;
-    let lines = wrapLabel(prize.label, maxWidth);
-    const maxLen = Math.max(...lines.map((l) => l.length), 0);
-    if (maxLen > 10) fontSize = Math.max(10, fontSize - 2);
-    if (maxLen > 14) fontSize = Math.max(9, fontSize - 2);
-    ctx.font = `700 ${fontSize}px "Sora", sans-serif`;
-
-    lines = wrapLabel(prize.label, maxWidth);
+    let lines = [];
+    for (let attempts = 0; attempts < 6; attempts += 1) {
+      ctx.font = `700 ${fontSize}px "Sora", sans-serif`;
+      lines = wrapLabel(prize.label, maxWidth, 3);
+      const tooWide = lines.some((line) => ctx.measureText(line).width > maxWidth);
+      if (!tooWide && lines.length <= 3) break;
+      fontSize = Math.max(9, fontSize - 2);
+    }
     const lineHeight = fontSize + 2;
-    const startY = lines.length === 1 ? 0 : -lineHeight / 2;
+    const startY = lines.length === 1 ? 0 : lines.length === 2 ? -lineHeight / 2 : -lineHeight;
 
     lines.forEach((line, i) => {
       ctx.fillText(line, textRadius, startY + i * lineHeight);
