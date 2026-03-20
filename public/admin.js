@@ -87,13 +87,23 @@ function createPrizeRow(prize = {}) {
   row.className = 'table-row';
   row.innerHTML = `
     <input type="text" placeholder="Ex: Cadeau surprise" value="${prize.label || ''}" />
-    <input type="number" min="0" step="1" value="${prize.probability || 0}" />
+    <input type="number" min="0" max="100" step="1" value="${prize.probability || 0}" />
     <button class="link danger" type="button">Supprimer</button>
   `;
 
   row.querySelectorAll('input').forEach((input) => {
     input.addEventListener('input', markEditing);
   });
+
+  const probInput = row.querySelectorAll('input')[1];
+  if (probInput) {
+    probInput.addEventListener('input', () => {
+      const value = Number(probInput.value || 0);
+      if (value > 100) {
+        probInput.value = 99;
+      }
+    });
+  }
 
   row.querySelector('button').addEventListener('click', () => {
     row.remove();
@@ -551,6 +561,16 @@ setActiveTab(savedTab);
 if (retryOn && retryOff) {
   retryOn.addEventListener('click', () => setRetryActive(true));
   retryOff.addEventListener('click', () => setRetryActive(false));
+}
+
+if (retryProbability) {
+  retryProbability.setAttribute('max', '100');
+  retryProbability.addEventListener('input', () => {
+    const value = Number(retryProbability.value || 0);
+    if (value > 100) {
+      retryProbability.value = 99;
+    }
+  });
 }
 
 const params = new URLSearchParams(window.location.search);
