@@ -344,12 +344,25 @@ if (savePrizesBtn) {
       };
     });
 
+    const cleanedForTotal = prizes.filter((p) => String(p.label || '').trim().length > 0);
+    const hasOver = cleanedForTotal.some((p) => Number(p.probability || 0) > 100);
+    let total = cleanedForTotal.reduce((sum, p) => sum + Number(p.probability || 0), 0);
     if (retryOn && retryOff && retryProbability && retryOn.classList.contains('active')) {
       prizes.push({
         label: 'Retente ta chance',
         probability: retryProbability.value,
         isRetry: true
       });
+      total += Number(retryProbability.value || 0);
+    }
+
+    if (hasOver) {
+      saveStatus.textContent = 'Chaque probabilite doit etre entre 0 et 100%.';
+      return;
+    }
+    if (total > 100) {
+      saveStatus.textContent = `Total des probabilites trop eleve (${total}%).`;
+      return;
     }
 
     saveStatus.textContent = 'Enregistrement...';
