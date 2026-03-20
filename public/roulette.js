@@ -94,17 +94,6 @@ function drawWheel(rotation = 0) {
   const densityFactor = Math.max(0.55, Math.min(1, 7 / wheelPrizes.length));
   const textRadius = radius * 0.56;
   const maxWidth = radius * 0.42;
-  let fontSize = Math.floor(Math.max(11, Math.min(18, radius * 0.11)) * densityFactor);
-  for (let attempts = 0; attempts < 6; attempts += 1) {
-    ctx.font = `700 ${fontSize}px "Sora", sans-serif`;
-    const fitsAll = wheelPrizes.every((prize) => {
-      const lines = wrapLabel(prize.label, maxWidth, 3);
-      if (!lines.length) return true;
-      return lines.length <= 3 && lines.every((line) => ctx.measureText(line).width <= maxWidth);
-    });
-    if (fitsAll) break;
-    fontSize = Math.max(9, fontSize - 2);
-  }
 
   const colors = buildColors(wheelPrizes.length);
   wheelPrizes.forEach((prize, index) => {
@@ -124,9 +113,15 @@ function drawWheel(rotation = 0) {
     ctx.textBaseline = 'middle';
     ctx.fillStyle = '#0e0f19';
 
-    let fontSize = Math.floor(Math.max(11, Math.min(18, radius * 0.11)) * densityFactor);
-    ctx.font = `700 ${fontSize}px "Sora", sans-serif`;
-    const lines = wrapLabel(prize.label, maxWidth, 3);
+    let fontSize = Math.floor(Math.max(11, Math.min(20, radius * 0.12)) * densityFactor);
+    let lines = [];
+    for (let attempts = 0; attempts < 8; attempts += 1) {
+      ctx.font = `700 ${fontSize}px "Sora", sans-serif`;
+      lines = wrapLabel(prize.label, maxWidth, 3);
+      const tooWide = lines.some((line) => ctx.measureText(line).width > maxWidth);
+      if (!tooWide && lines.length <= 3) break;
+      fontSize = Math.max(9, fontSize - 1);
+    }
     // Keep text readable (not upside down)
     if (midAngle > Math.PI / 2 && midAngle < Math.PI * 1.5) {
       ctx.rotate(Math.PI);
