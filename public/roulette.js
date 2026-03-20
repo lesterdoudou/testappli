@@ -122,10 +122,10 @@ function drawWheel(rotation = 0) {
 
   const angleStep = (Math.PI * 2) / wheelPrizes.length;
   const densityFactor = Math.max(0.55, Math.min(1, 7 / wheelPrizes.length));
-  const textRadius = radius * 0.65;
+  const textRadius = radius * 0.62;
   const arcLength = angleStep * textRadius;
-  const maxWidth = Math.min(radius * 0.6, arcLength * 0.75);
-  const maxTextHeight = arcLength * 0.75;
+  const maxWidth = Math.min(radius * 0.62, arcLength * 0.85);
+  const maxTextHeight = arcLength * 0.8;
 
   const colors = buildColors(wheelPrizes.length);
   wheelPrizes.forEach((prize, index) => {
@@ -144,7 +144,7 @@ function drawWheel(rotation = 0) {
     // Clip to the current slice so text never bleeds into neighbors
     ctx.beginPath();
     ctx.moveTo(0, 0);
-    ctx.arc(0, 0, radius - 6, start - rotation, end - rotation);
+    ctx.arc(0, 0, radius - 6, start, end);
     ctx.closePath();
     ctx.clip();
 
@@ -158,11 +158,11 @@ function drawWheel(rotation = 0) {
       ctx.rotate(Math.PI);
     }
 
-    let fontSize = Math.floor(Math.max(12, Math.min(22, radius * 0.12)) * densityFactor);
+    let fontSize = Math.floor(Math.max(12, Math.min(20, radius * 0.11)) * densityFactor);
     let lines = [];
     let lineHeight = fontSize + 2;
 
-    for (let attempts = 0; attempts < 14; attempts += 1) {
+    for (let attempts = 0; attempts < 16; attempts += 1) {
       ctx.font = `700 ${fontSize}px "Sora", sans-serif`;
       lines = wrapLabel(prize.label, maxWidth);
       lineHeight = fontSize + 2;
