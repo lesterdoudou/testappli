@@ -51,6 +51,15 @@ function wrapLabel(text, maxWidth) {
   return lines.slice(0, 2);
 }
 
+function pickColor(index) {
+  const color = palette[index % palette.length];
+  const prev = palette[(index - 1 + palette.length) % palette.length];
+  if (color === prev) {
+    return palette[(index + 1) % palette.length];
+  }
+  return color;
+}
+
 function drawWheel(rotation = 0) {
   const { width, height } = canvas;
   const radius = width / 2;
@@ -79,7 +88,7 @@ function drawWheel(rotation = 0) {
     ctx.beginPath();
     ctx.moveTo(radius, radius);
     ctx.arc(radius, radius, radius - 4, start, end);
-    ctx.fillStyle = palette[index % palette.length];
+    ctx.fillStyle = pickColor(index);
     ctx.fill();
 
     ctx.save();
@@ -89,13 +98,16 @@ function drawWheel(rotation = 0) {
     ctx.textBaseline = 'middle';
     ctx.fillStyle = '#0e0f19';
 
-    const baseSize = Math.max(11, Math.min(18, radius * 0.11));
-    const fontSize = Math.floor(baseSize * densityFactor);
+    let fontSize = Math.floor(Math.max(11, Math.min(18, radius * 0.11)) * densityFactor);
+    const textRadius = radius * 0.56;
+    const maxWidth = radius * 0.42;
+    let lines = wrapLabel(prize.label, maxWidth);
+    const maxLen = Math.max(...lines.map((l) => l.length), 0);
+    if (maxLen > 10) fontSize = Math.max(10, fontSize - 2);
+    if (maxLen > 14) fontSize = Math.max(9, fontSize - 2);
     ctx.font = `700 ${fontSize}px "Sora", sans-serif`;
 
-    const textRadius = radius * 0.56;
-    const maxWidth = radius * 0.45;
-    const lines = wrapLabel(prize.label, maxWidth);
+    lines = wrapLabel(prize.label, maxWidth);
     const lineHeight = fontSize + 2;
     const startY = lines.length === 1 ? 0 : -lineHeight / 2;
 
