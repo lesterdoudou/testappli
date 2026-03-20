@@ -431,6 +431,21 @@ textarea {
   background-blend-mode: normal, overlay, soft-light;
 }
 
+@media print {
+  * {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  body {
+    background: #ffffff !important;
+  }
+
+  .poster-wrap {
+    box-shadow: none !important;
+  }
+}
+
 .poster-wrap.theme-dark .poster-title {
   color: #f5f7fb;
 }
