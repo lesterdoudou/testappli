@@ -134,7 +134,8 @@ function drawWheel(rotation = 0) {
     ctx.fillStyle = '#0e0f19';
 
     const normalized = ((midAngle % (Math.PI * 2)) + Math.PI * 2) % (Math.PI * 2);
-    if (normalized > Math.PI / 2 && normalized < Math.PI * 1.5) {
+    const needsFlip = normalized > Math.PI / 2 && normalized < Math.PI * 1.5;
+    if (needsFlip) {
       ctx.rotate(Math.PI);
     }
 
@@ -157,8 +158,9 @@ function drawWheel(rotation = 0) {
 
     const totalHeight = lines.length * lineHeight;
     const startY = -totalHeight / 2 + lineHeight / 2;
+    const drawX = needsFlip ? -textRadius : textRadius;
     lines.forEach((line, i) => {
-      ctx.fillText(line, textRadius, startY + i * lineHeight);
+      ctx.fillText(line, drawX, startY + i * lineHeight);
     });
 
     ctx.restore();
