@@ -48,26 +48,6 @@ function wrapLabel(text, maxWidth) {
 
   words.forEach((word) => {
     if (!word) return;
-    if (ctx.measureText(word).width > maxWidth) {
-      const chars = [...word];
-      let chunk = '';
-      chars.forEach((ch) => {
-        const next = chunk + ch;
-        if (ctx.measureText(next).width <= maxWidth) {
-          chunk = next;
-        } else {
-          pushLine();
-          lines.push(chunk || ch);
-          chunk = '';
-        }
-      });
-      if (chunk) {
-        pushLine();
-        line = chunk;
-      }
-      return;
-    }
-
     const test = line ? `${line} ${word}` : word;
     if (ctx.measureText(test).width <= maxWidth) {
       line = test;
@@ -125,7 +105,7 @@ function drawWheel(rotation = 0) {
   const textRadius = radius * 0.62;
   const arcLength = angleStep * textRadius;
   const maxWidth = Math.min(radius * 0.62, arcLength * 0.85);
-  const maxTextHeight = arcLength * 0.8;
+  const maxTextHeight = arcLength * 0.95;
 
   const colors = buildColors(wheelPrizes.length);
   wheelPrizes.forEach((prize, index) => {
@@ -162,7 +142,7 @@ function drawWheel(rotation = 0) {
     let lines = [];
     let lineHeight = fontSize + 2;
 
-    for (let attempts = 0; attempts < 16; attempts += 1) {
+    for (let attempts = 0; attempts < 20; attempts += 1) {
       ctx.font = `700 ${fontSize}px "Sora", sans-serif`;
       lines = wrapLabel(prize.label, maxWidth);
       lineHeight = fontSize + 2;
@@ -170,10 +150,9 @@ function drawWheel(rotation = 0) {
       const tooWide = lines.some((line) => ctx.measureText(line).width > maxWidth);
       const tooTall = lines.length > maxLines;
       if (!tooWide && !tooTall) {
-        lines = lines.slice(0, maxLines);
         break;
       }
-      fontSize = Math.max(9, fontSize - 1);
+      fontSize = Math.max(7, fontSize - 1);
     }
 
     const totalHeight = lines.length * lineHeight;
