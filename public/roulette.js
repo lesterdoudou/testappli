@@ -62,28 +62,6 @@ function wrapLabel(text, maxWidth) {
 }
 
 
-function drawBevel(radius) {
-  // Outer rim
-  const rim = ctx.createRadialGradient(0, 0, radius * 0.82, 0, 0, radius);
-  rim.addColorStop(0, 'rgba(255,255,255,0)');
-  rim.addColorStop(0.7, 'rgba(255,255,255,0.05)');
-  rim.addColorStop(1, 'rgba(0,0,0,0.35)');
-  ctx.strokeStyle = rim;
-  ctx.lineWidth = Math.max(6, radius * 0.04);
-  ctx.beginPath();
-  ctx.arc(0, 0, radius - ctx.lineWidth / 2, 0, Math.PI * 2);
-  ctx.stroke();
-
-  // Inner shadow
-  const inner = ctx.createRadialGradient(0, 0, radius * 0.2, 0, 0, radius * 0.75);
-  inner.addColorStop(0, 'rgba(255,255,255,0.35)');
-  inner.addColorStop(0.6, 'rgba(0,0,0,0.08)');
-  inner.addColorStop(1, 'rgba(0,0,0,0.2)');
-  ctx.fillStyle = inner;
-  ctx.beginPath();
-  ctx.arc(0, 0, radius * 0.78, 0, Math.PI * 2);
-  ctx.fill();
-}
 
 function buildColors(count) {
   const colors = [];
@@ -138,12 +116,7 @@ function drawWheel(rotation = 0) {
     ctx.beginPath();
     ctx.moveTo(radius, radius);
     ctx.arc(radius, radius, radius - 4, start, end);
-    const sliceColor = colors[index];
-    const grad = ctx.createRadialGradient(radius, radius, radius * 0.2, radius, radius, radius);
-    grad.addColorStop(0, 'rgba(255,255,255,0.35)');
-    grad.addColorStop(0.35, sliceColor);
-    grad.addColorStop(1, 'rgba(0,0,0,0.18)');
-    ctx.fillStyle = grad;
+    ctx.fillStyle = colors[index];
     ctx.fill();
 
     ctx.save();
@@ -195,28 +168,6 @@ function drawWheel(rotation = 0) {
     ctx.restore();
   });
 
-  // 3D overlays
-  ctx.save();
-  ctx.translate(radius, radius);
-  const gloss = ctx.createRadialGradient(-radius * 0.3, -radius * 0.3, radius * 0.1, 0, 0, radius);
-  gloss.addColorStop(0, 'rgba(255,255,255,0.35)');
-  gloss.addColorStop(0.4, 'rgba(255,255,255,0.12)');
-  gloss.addColorStop(1, 'rgba(255,255,255,0)');
-  ctx.fillStyle = gloss;
-  ctx.beginPath();
-  ctx.arc(0, 0, radius - 6, 0, Math.PI * 2);
-  ctx.fill();
-
-  const shadow = ctx.createRadialGradient(radius * 0.2, radius * 0.2, radius * 0.2, 0, 0, radius);
-  shadow.addColorStop(0, 'rgba(0,0,0,0)');
-  shadow.addColorStop(1, 'rgba(0,0,0,0.25)');
-  ctx.fillStyle = shadow;
-  ctx.beginPath();
-  ctx.arc(0, 0, radius - 6, 0, Math.PI * 2);
-  ctx.fill();
-
-  drawBevel(radius);
-  ctx.restore();
 }
 
 function easeOutBack(t) {
