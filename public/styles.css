@@ -1,13 +1,13 @@
 :root {
   --bg: #0b1020;
-  --ink: #0b0f19;
+  --ink: #f5f7ff;
   --accent: #00e0ff;
   --accent-2: #ff3dff;
   --accent-3: #ffea00;
-  --card: rgba(255, 255, 255, 0.92);
-  --muted: #5f677a;
-  --border: #e3e7f1;
-  --shadow: rgba(11, 15, 25, 0.18);
+  --card: rgba(255, 255, 255, 0.14);
+  --muted: rgba(245, 247, 255, 0.7);
+  --border: rgba(255, 255, 255, 0.25);
+  --shadow: rgba(8, 12, 28, 0.35);
   --glow: rgba(0, 224, 255, 0.35);
   --glow-2: rgba(255, 61, 255, 0.35);
 }
@@ -21,10 +21,10 @@ body.page {
   font-family: 'Sora', sans-serif;
   color: var(--ink);
   background:
-    radial-gradient(circle at 12% 12%, rgba(0, 224, 255, 0.35), transparent 45%),
-    radial-gradient(circle at 88% 6%, rgba(255, 61, 255, 0.28), transparent 40%),
-    radial-gradient(circle at 50% 90%, rgba(255, 234, 0, 0.25), transparent 45%),
-    linear-gradient(140deg, #0b1020 0%, #12172a 35%, #0f1426 70%, #0b1020 100%);
+    radial-gradient(circle at 15% 10%, rgba(0, 224, 255, 0.25), transparent 45%),
+    radial-gradient(circle at 85% 15%, rgba(255, 61, 255, 0.22), transparent 42%),
+    radial-gradient(circle at 50% 85%, rgba(255, 234, 0, 0.18), transparent 50%),
+    linear-gradient(160deg, #0b1020 0%, #12192f 45%, #0c1326 100%);
   min-height: 100vh;
   -webkit-text-size-adjust: 100%;
 }
@@ -52,7 +52,7 @@ body.page {
 
 .hero p {
   max-width: 640px;
-  color: #d7deed;
+  color: rgba(245, 247, 255, 0.8);
   font-size: 1.05rem;
   text-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
 }
@@ -68,10 +68,10 @@ body.page {
   width: 64px;
   height: 64px;
   object-fit: contain;
-  background: rgba(255, 255, 255, 0.85);
+  background: rgba(255, 255, 255, 0.5);
   border-radius: 14px;
   padding: 6px;
-  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.25);
 }
 
 .pill {
@@ -93,10 +93,10 @@ body.page {
   border-radius: 20px;
   padding: 24px;
   border: 1px solid var(--border);
-  box-shadow: 0 24px 50px var(--shadow);
+  box-shadow: 0 24px 60px var(--shadow);
   display: grid;
   gap: 16px;
-  backdrop-filter: blur(6px);
+  backdrop-filter: blur(18px) saturate(140%);
   animation: floatIn 0.5s ease both;
 }
 
@@ -136,7 +136,7 @@ input {
   border: 1px solid var(--border);
   font-family: inherit;
   font-size: 1rem;
-  background: #ffffff;
+  background: rgba(255, 255, 255, 0.9);
   transition: border-color 0.2s ease, box-shadow 0.2s ease;
   width: 100%;
   max-width: 100%;
@@ -183,7 +183,7 @@ textarea {
 .btn.ghost {
   background: transparent;
   border: 1px solid rgba(0, 224, 255, 0.4);
-  color: var(--ink);
+  color: #f5f7ff;
   box-shadow: none;
 }
 
@@ -195,7 +195,7 @@ textarea {
 .link {
   background: none;
   border: none;
-  color: var(--ink);
+  color: #f5f7ff;
   font-weight: 600;
   cursor: pointer;
 }
@@ -215,7 +215,7 @@ textarea {
 }
 
 .link-list a {
-  color: var(--ink);
+  color: #f5f7ff;
   word-break: break-all;
   text-decoration: none;
 }
@@ -229,7 +229,8 @@ textarea {
   padding: 12px;
   border-radius: 14px;
   border: 1px dashed rgba(0, 224, 255, 0.35);
-  background: rgba(255, 255, 255, 0.65);
+  background: rgba(255, 255, 255, 0.14);
+  backdrop-filter: blur(14px);
 }
 
 .manual-pay h3 {
@@ -241,7 +242,8 @@ textarea {
   padding: 12px;
   border-radius: 14px;
   border: 1px solid var(--border);
-  background: rgba(255, 255, 255, 0.7);
+  background: rgba(255, 255, 255, 0.16);
+  backdrop-filter: blur(14px);
 }
 
 .suggestion-head {
